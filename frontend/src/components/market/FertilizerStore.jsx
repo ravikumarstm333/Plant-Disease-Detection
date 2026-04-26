@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { ExternalLink, Loader } from "lucide-react";
 import "./FertilizerStore.css";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function FertilizerStor() {
   const [diseaseData, setDiseaseData] = useState({});
@@ -15,7 +16,7 @@ function FertilizerStor() {
   const fetchDiseaseInfo = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://127.0.0.1:5000/diseaseInfo");
+      const response = await fetch(`${API_BASE_URL}/diseaseInfo`);
       
       if (!response.ok) {
         throw new Error("Failed to fetch disease information");
@@ -76,18 +77,18 @@ function FertilizerStor() {
 
                 <div className="card-content">
                   <div className="treatment-section">
-                    <h4>🏥 Treatment</h4>
+                    <h4>Treatment</h4>
                     <p>{info.treatment}</p>
                   </div>
 
                   <div className="fertilizer-section">
-                    <h4>🥗 Fertilizer Recommendation</h4>
+                    <h4>Fertilizer Recommendation</h4>
                     <p>{info.fertilizer}</p>
                   </div>
 
                   {info.fertilizer_links && info.fertilizer_links.length > 0 && (
                     <div className="fertilizer-products">
-                      <h5>📦 Recommended Products:</h5>
+                      <h5>Recommended Products:</h5>
                       <div className="products-grid">
                         {info.fertilizer_links.map((link, idx) => (
                           <div key={idx} className="product-item">
