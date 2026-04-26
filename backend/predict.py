@@ -3,8 +3,8 @@ import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 
-# ✅ FIXED PATH (model folder OUTSIDE backend)
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# ✅ Correct: backend folder ke andar hi model hai
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "model", "plant_disease_model.h5")
 
 if not os.path.exists(MODEL_PATH):

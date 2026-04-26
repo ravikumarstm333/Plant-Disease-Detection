@@ -1,38 +1,51 @@
-dataset/
-Train_plant_disease.ipynb
-frontend\node_modules
-frontend\.gitignore
-node_modules/
-frontend/node_modules/
-
-DataSet/
-uploads/
-tf210_env/
-venv/
-env/
+# Python
 __pycache__/
 *.pyc
+*.pyo
 *.pyd
-*.dll
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.hypothesis/
+.pytest_cache/
+cover/
+htmlcov/
+.ipynb_checkpoints
+.mypy_cache/
+.dmypy.json
+celerybeat-schedule
+.vscode/
+tf210_env/
+# Node
+frontend/node_modules/
+frontend/.gitignore
+.npm
+.yarn-integrity
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.next/
+out/
+build/
+dist/
 
+# ML
 *.h5
-*.ipynb_checkpoints
-.env
-# env files
-.env
-.env.*
+*.keras
+*.pb
+saved_model/
+dataset/
 
-# python
-__pycache__/
-*.pyc
-
-# uploads
+# Uploads
 uploads/
 backend/uploads/
 
-# node
-node_modules/
-dist/
-build/
-backend/.env
-tf210_env/
+# Environment variables
+.env
+/backend/.env
