@@ -3,4 +3,5 @@ flask-cors
 flask-jwt-extended
 numpy==1.23.5
 pillow
-tensorflow==2.10
+tensorflow==2.10.0
+gunicorn
