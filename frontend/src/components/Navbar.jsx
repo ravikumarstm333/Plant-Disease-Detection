@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, LogOut, Settings, History, Leaf } from 'lucide-react';
 import Button from './ui/Button';
+import './Navbar.css'
 
 
 const Navbar = () => {

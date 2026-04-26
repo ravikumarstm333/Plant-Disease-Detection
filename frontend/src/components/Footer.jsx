@@ -12,6 +12,7 @@ import {
   Linkedin,
   ArrowRight,
 } from 'lucide-react';
+import './Footer.css'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();

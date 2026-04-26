@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ToastContainer } from 'react-toastify';
 import { Leaf } from 'lucide-react';
 import 'react-toastify/dist/ReactToastify.css';
+import './App.css'
 
 // Components
 import Home from "./components/Home";

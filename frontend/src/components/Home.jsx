@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Leaf, Microscope, Zap, TrendingUp, Users, Award, ArrowRight } from 'lucide-react';
 import Button from './ui/Button';
 import Card from './ui/Card';
+import './Home.css';
 
 function Home() {
   const navigate = useNavigate();
