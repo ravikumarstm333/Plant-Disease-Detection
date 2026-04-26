@@ -20,7 +20,6 @@ import MyListings from "./components/market/MyListings";
 import DiseaseHistory from "./components/DiseaseHistory";
 import Footer from "./components/Footer";
 import FertilizerStor from "./components/market/FertilizerStore";
-import "./app.css";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -35,7 +34,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -50,7 +49,7 @@ const PublicRoute = ({ children }) => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;

@@ -67,7 +67,7 @@ const Login = () => {
       // Debug: Check if user is set before navigate
       setTimeout(() => {
         console.log('Navigating to dashboard...');
-        navigate('/dashboard');
+        navigate('/');
       }, 500);
     } catch (error) {
       console.error('Login Error:', error); // Debugging

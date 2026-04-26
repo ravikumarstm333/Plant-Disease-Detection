@@ -25,60 +25,6 @@ const Register = () => {
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
-
-  // Password Strength Calculator
-  const passwordStrength = useMemo(() => {
-    const pwd = formData.password;
-    let strength = 0;
-    let requirements = {
-      length: pwd.length >= 8,
-      uppercase: /[A-Z]/.test(pwd),
-      lowercase: /[a-z]/.test(pwd),
-      numbers: /\d/.test(pwd),
-      special: /[!@#$%^&*]/.test(pwd),
-    };
-
-    Object.values(requirements).forEach(req => {
-      if (req) strength++;
-    });
-
-    return { strength, requirements };
-  }, [formData.password]);
-
-  const getStrengthColor = () => {
-    switch (passwordStrength.strength) {
-      case 0:
-      case 1:
-        return 'bg-red-500';
-      case 2:
-      case 3:
-        return 'bg-yellow-500';
-      case 4:
-        return 'bg-green-500';
-      case 5:
-        return 'bg-green-600';
-      default:
-        return 'bg-gray-300';
-    }
-  };
-
-  const getStrengthText = () => {
-    switch (passwordStrength.strength) {
-      case 0:
-      case 1:
-        return 'Weak';
-      case 2:
-      case 3:
-        return 'Fair';
-      case 4:
-        return 'Good';
-      case 5:
-        return 'Strong';
-      default:
-        return 'Very Weak';
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -349,63 +295,6 @@ const Register = () => {
                   </motion.button>
                 </div>
               </motion.div>
-
-              {/* Password Strength Indicator */}
-              {formData.password && (
-                <motion.div
-                  variants={itemVariants}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-gray-50 rounded-xl p-4 border border-gray-200"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-gray-700">Password Strength</span>
-                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                      passwordStrength.strength <= 2 ? 'bg-red-100 text-red-700' :
-                      passwordStrength.strength <= 3 ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      {getStrengthText()}
-                    </span>
-                  </div>
-
-                  {/* Strength Bar */}
-                  <div className="w-full h-2 bg-gray-300 rounded-full overflow-hidden mb-3">
-                    <motion.div
-                      className={`h-full ${getStrengthColor()}`}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </div>
-
-                  {/* Requirements Checklist */}
-                  <div className="space-y-2">
-                    {[
-                      { label: 'At least 8 characters', key: 'length' },
-                      { label: 'Uppercase letter', key: 'uppercase' },
-                      { label: 'Lowercase letter', key: 'lowercase' },
-                      { label: 'Number', key: 'numbers' },
-                      { label: 'Special character (!@#$%^&*)', key: 'special' },
-                    ].map((req) => (
-                      <motion.div
-                        key={req.key}
-                        className="flex items-center gap-2 text-xs"
-                        animate={{ opacity: 1 }}
-                      >
-                        {passwordStrength.requirements[req.key] ? (
-                          <CheckCircle2 size={16} className="text-green-600" />
-                        ) : (
-                          <Circle size={16} className="text-gray-400" />
-                        )}
-                        <span className={passwordStrength.requirements[req.key] ? 'text-green-700 font-medium' : 'text-gray-600'}>
-                          {req.label}
-                        </span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
 
               {/* Terms Checkbox */}
               <motion.div variants={itemVariants}>
