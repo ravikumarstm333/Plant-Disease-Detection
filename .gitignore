@@ -49,3 +49,4 @@ backend/uploads/
 # Environment variables
 .env
 /backend/.env
+/Documents
