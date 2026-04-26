@@ -50,3 +50,4 @@ backend/uploads/
 .env
 /backend/.env
 /Documents
+/backend/plant-disease-backend

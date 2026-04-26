@@ -74,45 +74,64 @@ def home():
     })
 
 
-# ---------------- PREDICT IMAGE ----------------
+## ---------------- PREDICT IMAGE ----------------
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
         if "image" not in request.files:
-            return jsonify({"error": "No image uploaded"}), 400
+            return jsonify({
+                "status": "failed",
+                "error": "No image uploaded"
+            }), 400
 
         file = request.files["image"]
 
         if file.filename == "" or not allowed_file(file.filename):
-            return jsonify({"error": "Invalid file type"}), 400
+            return jsonify({
+                "status": "failed",
+                "error": "Invalid file type"
+            }), 400
 
         filename = secure_filename(file.filename)
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
 
-        # AI PREDICTION
-        disease_name, confidence = predict_disease(filepath)
+        # AI Prediction
+        result = predict_disease(filepath)
+
+        if result["status"] != "success":
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            return jsonify(result), 500
+
+        disease_name = result["disease"]
+        confidence = result["confidence"]
 
         info = disease_info.get(disease_name, {})
 
-        # image to base64
+        # Convert image to base64
         with open(filepath, "rb") as f:
             img_base64 = base64.b64encode(f.read()).decode("utf-8")
 
-        # cleanup
-        os.remove(filepath)
+        # Cleanup
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
         return jsonify({
+            "status": "success",
             "disease": disease_name,
-            "confidence": round(confidence * 100, 2),
+            "confidence": confidence,
             "treatment": info.get("treatment", ""),
             "fertilizer": info.get("fertilizer", ""),
             "fertilizer_links": info.get("fertilizer_links", []),
             "image": img_base64
-        })
+        }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "status": "failed",
+            "error": str(e)
+        }), 500
 
 
 # ---------------- AUTH PREDICT (SAVE HISTORY) ----------------
@@ -123,43 +142,68 @@ def predict_auth():
         user_id = get_jwt_identity()
 
         if "image" not in request.files:
-            return jsonify({"error": "No image uploaded"}), 400
+            return jsonify({
+                "status": "failed",
+                "error": "No image uploaded"
+            }), 400
 
         file = request.files["image"]
+
+        if file.filename == "" or not allowed_file(file.filename):
+            return jsonify({
+                "status": "failed",
+                "error": "Invalid file type"
+            }), 400
 
         filename = secure_filename(file.filename)
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
 
-        disease_name, confidence = predict_disease(filepath)
+        # AI Prediction
+        result = predict_disease(filepath)
+
+        if result["status"] != "success":
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            return jsonify(result), 500
+
+        disease_name = result["disease"]
+        confidence = result["confidence"]
+
         info = disease_info.get(disease_name, {})
 
+        # Convert image to base64
         with open(filepath, "rb") as f:
             img_base64 = base64.b64encode(f.read()).decode("utf-8")
 
-        os.remove(filepath)
+        # Cleanup
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
-        # SAVE TO MONGO
+        # Save to MongoDB
         db.save_disease_history({
             "userId": user_id,
             "disease": disease_name,
-            "confidence": round(confidence * 100, 2),
+            "confidence": confidence,
             "image": img_base64,
             "fertilizer": info.get("fertilizer", "")
         })
 
         return jsonify({
+            "status": "success",
             "disease": disease_name,
-            "confidence": round(confidence * 100, 2),
+            "confidence": confidence,
             "treatment": info.get("treatment", ""),
             "fertilizer": info.get("fertilizer", ""),
             "fertilizer_links": info.get("fertilizer_links", [])
-        })
+        }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
+        return jsonify({
+            "status": "failed",
+            "error": str(e)
+        }), 500
+    
 # ---------------- HISTORY ----------------
 @app.route("/history", methods=["GET"])
 @jwt_required()

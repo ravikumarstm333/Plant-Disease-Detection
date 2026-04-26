@@ -1,6 +1,8 @@
 import React, { useState, useRef } from "react";
 import './chatbot.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const cropOptions = [
   "Tomato",
   "Apple",
@@ -54,7 +56,7 @@ function Chatbot({ disease }) {
     }
 
     try {
-      const res = await fetch("/chat", {
+      const res = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
         body: selectedImage ? formData : JSON.stringify({
           question: input,

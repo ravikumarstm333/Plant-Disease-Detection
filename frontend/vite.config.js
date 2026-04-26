@@ -4,19 +4,4 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      // Proxy dev requests from the Vite server to the backend to avoid CORS issues
-      "/predict": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-      },
-      "/chat": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
 })

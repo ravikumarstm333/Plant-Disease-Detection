@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Create axios instance
 const api = axios.create({
@@ -45,21 +45,10 @@ export const authAPI = {
 };
 
 export const diseaseAPI = {
-  predict: (formData) => {
-    const token = localStorage.getItem('token');
-    const config = {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    };
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return axios.post(`${API_BASE_URL}/predict/auth`, formData, config);
-  },
-  predictUnauth: (formData) => axios.post(`${API_BASE_URL}/predict`, formData, {
+  predict: (formData) => api.post('/predict', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
+  predictUnauth: (formData) => api.post('/predict', formData),
   getHistory: () => api.get('/history'),
 };
 

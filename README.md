@@ -1,3 +1,14 @@
+---
+title: Plant Disease Detection
+emoji: 🌿
+colorFrom: green
+colorTo: blue
+sdk: gradio
+sdk_version: "5.29.0"
+python_version: "3.10"
+app_file: app.py
+pinned: false
+---
 # Smart Farming Platform
 
 A comprehensive platform for farmers with disease detection, market management, and AI-powered chatbot assistance.

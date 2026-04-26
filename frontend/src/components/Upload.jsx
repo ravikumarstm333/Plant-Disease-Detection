@@ -7,6 +7,8 @@ import Card from './ui/Card';
 import Loading from './ui/Loading';
 import { toast } from 'react-toastify';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 function Upload() {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -127,7 +129,7 @@ function Upload() {
     formData.append('image', image);
 
     try {
-      const res = await fetch('/predict', {
+      const res = await fetch(`${API_BASE_URL}/predict`, {
         method: 'POST',
         body: formData,
       });
