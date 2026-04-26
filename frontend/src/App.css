@@ -1,0 +1,57 @@
+/* App Layout Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background: #f5f7fa;
+  overflow-x: hidden;
+}
+
+/* Root variables (optional but useful) */
+:root {
+  --primary: #2e7d32;
+  --secondary: #4caf50;
+  --bg: #f5f7fa;
+  --text: #333;
+}
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #f1f8f5 100%);
+}
+
+.main-content {
+  flex: 1;
+  min-height: calc(100vh - 80px);
+  padding-top: 80px;
+  width: 100%;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+/* Responsive Values */
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 60px;
+    min-height: calc(100vh - 60px);
+  }
+}

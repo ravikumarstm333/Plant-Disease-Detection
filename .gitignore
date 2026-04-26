@@ -1,0 +1,38 @@
+dataset/
+Train_plant_disease.ipynb
+frontend\node_modules
+frontend\.gitignore
+node_modules/
+frontend/node_modules/
+
+DataSet/
+uploads/
+tf210_env/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyd
+*.dll
+
+*.h5
+*.ipynb_checkpoints
+.env
+# env files
+.env
+.env.*
+
+# python
+__pycache__/
+*.pyc
+
+# uploads
+uploads/
+backend/uploads/
+
+# node
+node_modules/
+dist/
+build/
+backend/.env
+tf210_env/

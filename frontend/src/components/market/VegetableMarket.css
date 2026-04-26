@@ -1,0 +1,647 @@
+/* ===== VegetableMarket Component Styling ===== */
+
+:root {
+  --primary-color: #2E7D32;
+  --secondary-color: #4CAF50;
+  --accent-color: #81C784;
+  --light-accent: #E8F5E9;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --info-color: #2196f3;
+  --error-color: #f44336;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666;
+  --border-color: #e0e0e0;
+  --bg-light: #fafafa;
+}
+
+.vegetable-market {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--light-accent) 0%, #f5f5f5 100%);
+  padding: 2rem;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Header Section ===== */
+.market-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  animation: slideDown 0.6s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.market-header h1 {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.market-header p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ===== Market Controls Section ===== */
+.market-controls {
+  max-width: 1400px;
+  margin: 0 auto 2.5rem;
+  animation: slideUp 0.6s ease-out 0.1s both;
+}
+
+.location-search {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(46, 125, 50, 0.12);
+  border: 1px solid var(--border-color);
+  align-items: center;
+}
+
+.location-search input {
+  flex: 1;
+  min-width: 200px;
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.location-search input:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.search-btn,
+.clear-btn,
+.sell-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+}
+
+.search-btn {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+}
+
+.search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+}
+
+.clear-btn {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+}
+
+.clear-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
+.sell-btn {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
+.sell-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Market Prices Section ===== */
+.market-prices {
+  max-width: 1400px;
+  margin: 0 auto 3rem;
+  animation: slideUp 0.6s ease-out 0.2s both;
+}
+
+.market-prices h2 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.price-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(46, 125, 50, 0.12);
+  border: 1px solid var(--border-color);
+  border-top: 4px solid var(--secondary-color);
+  transition: all 0.3s ease;
+  text-align: center;
+  animation: slideUp 0.5s ease-out;
+}
+
+.price-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(46, 125, 50, 0.15);
+}
+
+.price-card h3 {
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.price-card .price {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+  margin: 0.75rem 0;
+}
+
+.price-card small {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  display: block;
+  margin-top: 0.75rem;
+}
+
+/* ===== Market Listings Section ===== */
+.market-listings {
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: slideUp 0.6s ease-out 0.3s both;
+}
+
+.market-listings h2 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+/* ===== Listing Card ===== */
+.listing-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(46, 125, 50, 0.12);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  min-height: 320px;
+  animation: slideUp 0.5s ease-out;
+}
+
+.listing-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.listing-card:hover::before {
+  transform: scaleX(1);
+}
+
+.listing-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(46, 125, 50, 0.15);
+}
+
+/* ===== Listing Header ===== */
+.listing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.listing-header h3 {
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 700;
+  flex: 1;
+  word-break: break-word;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--success-color) 0%, var(--secondary-color) 100%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+/* ===== Listing Details ===== */
+.listing-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.listing-details p {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  animation: slideRight 0.5s ease-out;
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.listing-details .price {
+  font-size: 1.4rem;
+  color: var(--primary-color);
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+.listing-details .quantity {
+  color: var(--info-color);
+  font-weight: 600;
+}
+
+.listing-details .location {
+  color: var(--error-color);
+  font-weight: 600;
+}
+
+.listing-details .farmer {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.listing-details .contact {
+  color: var(--warning-color);
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+/* ===== Listing Actions ===== */
+.listing-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.contact-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+}
+
+.contact-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+}
+
+.contact-btn:active {
+  transform: translateY(0);
+}
+
+.delete-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.delete-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+.delete-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.delete-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ===== No Data State ===== */
+.no-data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  text-align: center;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(46, 125, 50, 0.12);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: 0 auto;
+  max-width: 1400px;
+  animation: slideUp 0.6s ease-out;
+}
+
+/* ===== Loading State ===== */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--light-accent) 0%, #f5f5f5 100%);
+}
+
+.loading {
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 1024px) {
+  .listings-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .prices-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .market-header h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .vegetable-market {
+    padding: 1.5rem;
+  }
+
+  .market-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .market-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .market-header p {
+    font-size: 1rem;
+  }
+
+  .location-search {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .location-search input,
+  .search-btn,
+  .clear-btn,
+  .sell-btn {
+    width: 100%;
+  }
+
+  .listings-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .prices-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .market-prices h2,
+  .market-listings h2 {
+    font-size: 1.2rem;
+  }
+
+  .listing-card {
+    min-height: 280px;
+    padding: 1.25rem;
+  }
+
+  .listing-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .price-card {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .vegetable-market {
+    padding: 1rem;
+  }
+
+  .market-header {
+    margin-bottom: 1rem;
+  }
+
+  .market-header h1 {
+    font-size: 1.3rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .market-header p {
+    font-size: 0.9rem;
+  }
+
+  .location-search {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .location-search input,
+  .search-btn,
+  .clear-btn,
+  .sell-btn {
+    width: 100%;
+    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .prices-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .listing-card {
+    min-height: 260px;
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .listing-header h3 {
+    font-size: 1rem;
+  }
+
+  .status-badge {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.7rem;
+  }
+
+  .listing-details {
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+  }
+
+  .listing-details p {
+    font-size: 0.85rem;
+  }
+
+  .listing-details .price {
+    font-size: 1.2rem;
+  }
+
+  .contact-btn {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .price-card {
+    padding: 0.75rem;
+  }
+
+  .price-card h3 {
+    font-size: 0.9rem;
+  }
+
+  .price-card .price {
+    font-size: 1.4rem;
+  }
+
+  .market-prices h2,
+  .market-listings h2 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
