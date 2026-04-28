@@ -78,8 +78,34 @@ const Login = () => {
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    toast.info(`${provider} login coming soon!`);
+  const handleSocialLogin = async (provider) => {
+    if (provider === 'Google') {
+      // Use Google Identity Services (GSI)
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        scope: 'email profile',
+        callback: async (response) => {
+          if (response.access_token) {
+            try {
+              setLoading(true);
+              const res = await authAPI.socialLogin({ provider: 'google', token: response.access_token });
+              login(res.data.access_token, res.data.user);
+              toast.success('Google login successful!');
+              navigate('/');
+            } catch (err) {
+              toast.error('Google authentication failed');
+            } finally {
+              setLoading(false);
+            }
+          }
+        },
+      });
+      client.requestAccessToken();
+    } else if (provider === 'GitHub') {
+      const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+      const redirectUri = `${window.location.origin}/auth/callback/github`;
+      window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
+    }
   };
 
   const containerVariants = {
