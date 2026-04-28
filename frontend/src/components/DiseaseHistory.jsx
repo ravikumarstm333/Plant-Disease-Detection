@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { diseaseAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import './DiseaseHistory.css';
@@ -6,6 +7,7 @@ import './DiseaseHistory.css';
 const DiseaseHistory = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadDiseaseHistory();
@@ -36,7 +38,7 @@ const DiseaseHistory = () => {
   return (
     <div className="disease-history">
       <div className="history-header">
-        <h1>📋 Disease Detection History</h1>
+        <h1>Disease Detection History</h1>
         <p>View all your previous plant disease detections and recommendations</p>
       </div>
 
@@ -68,14 +70,14 @@ const DiseaseHistory = () => {
               <div className="history-content">
                 <div className="recommendations">
                   <div className="treatment">
-                    <h4>💊 Treatment</h4>
+                    <h4>Treatment</h4>
                     <p>{item.fertilizer}</p>
                   </div>
                 </div>
 
                 {item.image && (
                   <div className="history-image">
-                    <h4>📷 Uploaded Image</h4>
+                    <h4>Uploaded Image</h4>
                     <img
                       src={`data:image/jpeg;base64,${item.image}`}
                       alt="Detected plant"
@@ -88,15 +90,15 @@ const DiseaseHistory = () => {
               <div className="history-actions">
                 <button
                   className="chat-btn"
-                  onClick={() => {
-                    // Navigate to chatbot with this disease context
-                    window.location.href = `/chat?disease=${encodeURIComponent(item.disease)}`;
-                  }}
+                  onClick={() => navigate('/chat', { state: { disease: item.disease } })}
                 >
-                  💬 Ask About This Disease
+                  Ask About This Disease
                 </button>
-                <button className="detect-again-btn">
-                  🔍 Detect Again
+                <button 
+                  className="detect-again-btn"
+                  onClick={() => navigate('/result', { state: item })}
+                >
+                  Detect Again
                 </button>
               </div>
             </div>

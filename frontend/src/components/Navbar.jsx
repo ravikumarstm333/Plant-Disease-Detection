@@ -103,45 +103,45 @@ const Navbar = () => {
                 ) : null
               ))}
 
-              {/* Farmer Menu */}
-              {isAuthenticated && user?.role === 'farmer' && (
-                <div className="relative group">
-                  <button className="text-gray-700 hover:text-primary-600 font-semibold">
-                    Farmer
-                  </button>
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    whileHover={{ opacity: 1, y: 0 }}
-                    className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all"
-                  >
-                    {farmerLinks.map((link) => (
-                      <Link
-                        key={link.path}
-                        to={link.path}
-                        className="block px-4 py-3 text-gray-700 hover:bg-primary-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
-                      >
-                        {link.name}
-                      </Link>
-                    ))}
-                  </motion.div>
-                </div>
-              )}
             </div>
 
             {/* Right Side */}
             <div className="hidden lg:flex items-center gap-4">
               {isAuthenticated ? (
                 <div className="relative group">
-                  <motion.button
+                  <motion.div
                     whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-primary-50 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-primary-50 transition-colors cursor-pointer"
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                   >
                     <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center text-white text-sm font-bold">
                       {user?.name?.charAt(0)?.toUpperCase()}
                     </div>
                     <span className="font-semibold text-gray-700">{user?.name}</span>
-                  </motion.button>
+                        {/* Farmer Menu */}
+                        {isAuthenticated && user?.role === 'farmer' && (
+                          <div className="relative group">
+                            <span className="text-gray-700 hover:text-primary-600 font-semibold cursor-default">
+                              (Farmer)
+                            </span>
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              whileHover={{ opacity: 1, y: 0 }}
+                              className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all"
+                            >
+                              {farmerLinks.map((link) => (
+                                <Link
+                                  key={link.path}
+                                  to={link.path}
+                                  className="block px-4 py-3 text-gray-700 hover:bg-primary-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
+                                >
+                                  {link.name}
+                                </Link>
+                              ))}
+                            </motion.div>
+                          </div>
+                        )}
+                  </motion.div>
 
                   <AnimatePresence>
                     {dropdownOpen && (

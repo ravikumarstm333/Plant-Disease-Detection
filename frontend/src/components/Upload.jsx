@@ -1,19 +1,24 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
 import { Upload as UploadIcon, Camera, X, Check, AlertCircle } from 'lucide-react';
 import Button from './ui/Button';
 import Card from './ui/Card';
 import Loading from './ui/Loading';
 import { toast } from 'react-toastify';
+import './Upload.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function Upload() {
+  const { isAuthenticated } = useAuth();
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isCropping, setIsCropping] = useState(false);
+  const [tempImage, setTempImage] = useState(null);
   const [error, setError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
@@ -79,7 +84,11 @@ function Upload() {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 4096 },
+          height: { ideal: 2160 }
+        },
       });
       videoRef.current.srcObject = stream;
       setCameraActive(true);
@@ -97,6 +106,8 @@ function Upload() {
       tracks.forEach((track) => track.stop());
     }
     setCameraActive(false);
+    setIsCropping(false);
+    setTempImage(null);
   };
 
   const capturePhoto = () => {
@@ -106,14 +117,44 @@ function Upload() {
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
+    
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
     context.drawImage(video, 0, 0);
 
-    canvas.toBlob((blob) => {
-      const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
-      setImage(file);
-      setPreview(canvas.toDataURL('image/jpeg'));
-      stopCamera();
-    }, 'image/jpeg');
+    setTempImage(canvas.toDataURL('image/jpeg', 1.0));
+    setIsCropping(true);
+    
+    // Pause the video track to save resources while cropping
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+    }
+  };
+
+  const applyCrop = () => {
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      const size = Math.min(img.width, img.height);
+      const startX = (img.width - size) / 2;
+      const startY = (img.height - size) / 2;
+
+      canvas.width = size;
+      canvas.height = size;
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      context.drawImage(img, startX, startY, size, size, 0, 0, size, size);
+
+      canvas.toBlob((blob) => {
+        const file = new File([blob], 'captured-leaf.jpg', { type: 'image/jpeg' });
+        setImage(file);
+        setPreview(canvas.toDataURL('image/jpeg', 0.95));
+        stopCamera();
+      }, 'image/jpeg', 0.95);
+    };
+    img.src = tempImage;
   };
 
   const handleSubmit = async (e) => {
@@ -128,9 +169,16 @@ function Upload() {
     const formData = new FormData();
     formData.append('image', image);
 
+    // Use authenticated endpoint if user is logged in
+    const endpoint = isAuthenticated ? `${API_BASE_URL}/predict/auth` : `${API_BASE_URL}/predict`;
+    const headers = {};
+    const token = localStorage.getItem('token');
+    if (isAuthenticated && token) headers['Authorization'] = `Bearer ${token}`;
+
     try {
-      const res = await fetch(`${API_BASE_URL}/predict`, {
+      const res = await fetch(endpoint, {
         method: 'POST',
+        headers: headers,
         body: formData,
       });
 
@@ -165,7 +213,7 @@ function Upload() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <h1 className="section-title">🔍 Detect Plant Disease</h1>
+          <h1 className="section-title">Detect Plant Disease</h1>
           <p className="section-subtitle">
             Upload a clear photo of your plant leaf to get instant AI diagnosis
           </p>
@@ -396,33 +444,47 @@ function Upload() {
                 </div>
 
                 <div className="p-6 space-y-4">
-                  <motion.video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    className="w-full rounded-xl bg-black"
-                  />
+                  {isCropping ? (
+                    <div className="space-y-4">
+                      <div className="relative rounded-xl overflow-hidden bg-black aspect-square flex items-center justify-center">
+                        <img src={tempImage} alt="Captured" className="max-w-full max-h-full object-contain" />
+                        <div className="absolute w-48 h-48 border-2 border-primary-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] pointer-events-none rounded-md"></div>
+                      </div>
+                      <p className="text-center text-sm text-gray-500">Center the affected part of the leaf for analysis</p>
+                      <div className="flex gap-4">
+                        <Button variant="primary" size="lg" onClick={applyCrop} className="flex-1">
+                          Confirm & Use
+                        </Button>
+                        <Button variant="outline" size="lg" onClick={() => { setIsCropping(false); startCamera(); }} className="flex-1">
+                          Retake
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <motion.video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        className="w-full rounded-xl bg-black"
+                      />
+                      <div className="flex gap-4">
+                        <Button
+                          variant="primary"
+                          size="lg"
+                          onClick={capturePhoto}
+                          className="flex-1"
+                        >
+                          <Camera size={20} />
+                          Capture Photo
+                        </Button>
+                        <Button variant="outline" size="lg" onClick={stopCamera} className="flex-1">
+                          Cancel
+                        </Button>
+                      </div>
+                    </>
+                  )}
                   <canvas ref={canvasRef} className="hidden" />
-
-                  <div className="flex gap-4">
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onClick={capturePhoto}
-                      className="flex-1"
-                    >
-                      <Camera size={20} />
-                      Capture Photo
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={stopCamera}
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
                 </div>
               </motion.div>
             </motion.div>

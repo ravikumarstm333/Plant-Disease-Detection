@@ -32,7 +32,7 @@ function Home() {
 
   const stats = [
     { number: '50K+', label: 'Plants Scanned' },
-    { number: '95%', label: 'Accuracy' },
+    { number: '94.6%', label: 'Accuracy' },
     { number: '10K+', label: 'Farmers' },
   ];
 
