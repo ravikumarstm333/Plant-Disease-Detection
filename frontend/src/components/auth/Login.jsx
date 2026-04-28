@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, Eye, EyeOff, Leaf, Github, Chrome } from 'lucide-react';
@@ -20,23 +20,6 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const { login } = useAuth();
-
-  useEffect(() => {
-    // Dynamically load Google Identity Services script
-    if (!document.getElementById('google-client-script')) {
-      const script = document.createElement('script');
-      script.id = 'google-client-script';
-      script.src = "https://accounts.google.com/gsi/client";
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-
-    return () => {
-      const script = document.getElementById('google-client-script');
-      if (script) document.body.removeChild(script);
-    };
-  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -95,47 +78,8 @@ const Login = () => {
     }
   };
 
-  const handleSocialLogin = async (provider) => {
-    if (provider === 'Google') {
-      if (!window.google || !window.google.accounts) {
-        toast.error('Google login service is still loading. Please try again in a moment.');
-        return;
-      }
-
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      if (!clientId) {
-        toast.error('Google Client ID is missing. Please check your .env file.');
-        console.error('VITE_GOOGLE_CLIENT_ID is undefined. Ensure it is set in frontend/.env and restart the server.');
-        return;
-      }
-
-      // Use Google Identity Services (GSI)
-      const client = window.google.accounts.oauth2.initTokenClient({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        client_id: clientId,
-        scope: 'email profile',
-        callback: async (response) => {
-          if (response.access_token) {
-            try {
-              setLoading(true);
-              const res = await authAPI.socialLogin({ provider: 'google', token: response.access_token });
-              login(res.data.access_token, res.data.user);
-              toast.success('Google login successful!');
-              navigate('/');
-            } catch (err) {
-              toast.error('Google authentication failed');
-            } finally {
-              setLoading(false);
-            }
-          }
-        },
-      });
-      client.requestAccessToken();
-    } else if (provider === 'GitHub') {
-      const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-      const redirectUri = `${window.location.origin}/auth/callback/github`;
-      window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
-    }
+  const handleSocialLogin = (provider) => {
+    toast.info(`${provider} login coming soon!`);
   };
 
   const containerVariants = {
