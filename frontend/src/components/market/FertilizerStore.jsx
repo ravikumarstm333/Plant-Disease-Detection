@@ -1,6 +1,6 @@
 // FertilizerStore.jsx
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { 
   ExternalLink, 
   Search, 

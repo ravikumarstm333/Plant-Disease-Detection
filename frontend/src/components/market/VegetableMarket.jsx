@@ -1,22 +1,117 @@
-import React, { useState, useEffect } from 'react';
+// VegetableMarket.jsx
+import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { marketAPI } from '../../services/api';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { toast } from 'react-toastify';
+import { marketAPI } from '../../services/api';
+import { toast } from "react-hot-toast";
+import { 
+  Search, 
+  X, 
+  TrendingUp, 
+  TrendingDown, 
+  MapPin, 
+  Phone, 
+  User, 
+  Package, 
+  DollarSign,
+  Star,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Shield,
+  MessageCircle,
+  ShoppingBag,
+  Filter,
+  Grid,
+  List,
+  ChevronDown,
+  Heart
+} from 'lucide-react';
 import './VegetableMarket.css';
+
+// Lazy load components
+const ListingCard = lazy(() => import('./ListingCard'));
+const PriceDashboard = lazy(() => import('./PriceDashboard'));
+const ManagerPanel = lazy(()=> import('./ManagerPanel'))
+
+// Animation variants
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+// Loading Skeleton Component
+const LoadingSkeleton = () => (
+  <div className="skeleton-container">
+    {[1, 2, 3, 4, 5, 6].map(i => (
+      <div key={i} className="skeleton-card">
+        <div className="skeleton-header">
+          <div className="skeleton-title"></div>
+          <div className="skeleton-badge"></div>
+        </div>
+        <div className="skeleton-details">
+          <div className="skeleton-line"></div>
+          <div className="skeleton-line"></div>
+          <div className="skeleton-line short"></div>
+        </div>
+        <div className="skeleton-actions"></div>
+      </div>
+    ))}
+  </div>
+);
+
+// Empty State Component
+const EmptyState = ({ icon: Icon, title, message, action }) => (
+  <motion.div 
+    className="empty-state"
+    variants={fadeInUp}
+    initial="initial"
+    animate="animate"
+  >
+    <div className="empty-state-icon">
+      <Icon size={64} strokeWidth={1.5} />
+    </div>
+    <h3>{title}</h3>
+    <p>{message}</p>
+    {action && (
+      <button onClick={action.onClick} className="empty-state-btn">
+        {action.label}
+      </button>
+    )}
+  </motion.div>
+);
 
 const VegetableMarket = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [listings, setListings] = useState([]);
   const [prices, setPrices] = useState([]);
-  const [newPrice, setNewPrice] = useState({ vegetableName: '', price: '' });
-  const [location, setLocation] = useState('');
   const [loading, setLoading] = useState(true);
-  const [searchResults, setSearchResults] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [viewMode, setViewMode] = useState('grid');
+  const [sortBy, setSortBy] = useState('latest');
+  const [showFilters, setShowFilters] = useState(false);
+  const [favorites, setFavorites] = useState(new Set());
 
   useEffect(() => {
     loadMarketData();
+    // Load favorites from localStorage
+    const savedFavorites = localStorage.getItem('vegetableFavorites');
+    if (savedFavorites) {
+      setFavorites(new Set(JSON.parse(savedFavorites)));
+    }
   }, []);
 
   const loadMarketData = async () => {
@@ -26,236 +121,344 @@ const VegetableMarket = () => {
         marketAPI.getListings(),
         marketAPI.getMarketPrices()
       ]);
-
       setListings(listingsRes.data.listings || []);
       setPrices(pricesRes.data.prices || []);
-      setSearchResults(false);
     } catch (error) {
       console.error('Error loading market data:', error);
-      toast.error('Failed to load market data');
-      setListings([]);
-      setPrices([]);
+      toast.error('Failed to load market data', {
+        icon: '❌',
+        style: { background: '#ff4757', color: '#fff' }
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Manager: Approve a listing
-  const handleApprove = async (id) => {
-    try {
-      await marketAPI.approveListing(id);
-      toast.success('Listing approved and is now live');
-      loadMarketData();
-    } catch (error) {
-      toast.error('Failed to approve listing');
-    }
-  };
-
-  // Manager: Reject a listing
-  const handleReject = async (id) => {
-    try {
-      await marketAPI.rejectListing(id);
-      toast.warn('Listing rejected');
-      loadMarketData();
-    } catch (error) {
-      toast.error('Failed to reject listing');
-    }
-  };
-
-  // Manager: Set official market price
-  const handleSetPrice = async (e) => {
-    e.preventDefault();
-    if (!newPrice.vegetableName || !newPrice.price) return;
+  // Filter and sort listings
+  const filteredListings = useMemo(() => {
+    let filtered = [...listings];
     
+    // Filter by status
+    filtered = filtered.filter(l => l.status === 'approved' || !l.status);
+    
+    // Search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(l => 
+        l.vegetableName?.toLowerCase().includes(term) ||
+        l.farmerName?.toLowerCase().includes(term) ||
+        l.location?.toLowerCase().includes(term)
+      );
+    }
+    
+    // Location filter
+    if (locationFilter) {
+      filtered = filtered.filter(l => 
+        l.location?.toLowerCase().includes(locationFilter.toLowerCase())
+      );
+    }
+    
+    // Price range filter
+    if (priceRange.min) {
+      filtered = filtered.filter(l => l.price >= Number(priceRange.min));
+    }
+    if (priceRange.max) {
+      filtered = filtered.filter(l => l.price <= Number(priceRange.max));
+    }
+    
+    // Sorting
+    switch (sortBy) {
+      case 'price_low':
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price_high':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case 'latest':
+        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        break;
+      default:
+        break;
+    }
+    
+    return filtered;
+  }, [listings, searchTerm, locationFilter, priceRange, sortBy]);
+
+  // Get unique locations for filter
+  const locations = useMemo(() => {
+    const locs = new Set();
+    listings.forEach(l => l.location && locs.add(l.location));
+    return Array.from(locs);
+  }, [listings]);
+
+  const handleContactFarmer = async (listing) => {
     try {
-      await marketAPI.setMarketPrice(newPrice);
-      toast.success(`Market price for ${newPrice.vegetableName} updated`);
-      setNewPrice({ vegetableName: '', price: '' });
-      loadMarketData();
-    } catch (error) {
-      toast.error('Failed to update market price');
+      await navigator.clipboard.writeText(listing.contact);
+      toast.success(`Contact number copied!`, {
+        icon: '📞',
+        duration: 2000,
+        style: { background: '#4caf50', color: '#fff' }
+      });
+    } catch (err) {
+      toast.error('Failed to copy contact', {
+        icon: '❌'
+      });
     }
   };
 
-  const handleLocationSearch = async () => {
-    if (!location.trim()) {
-      loadMarketData();
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await marketAPI.getListings(location);
-      setListings(response.data.listings || []);
-      setSearchResults(true);
-    } catch (error) {
-      console.error('Search error:', error);
-      toast.error('Failed to search by location');
-      setListings([]);
-    } finally {
-      setLoading(false);
-    }
+  const handleToggleFavorite = (id) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(id)) {
+        newFavorites.delete(id);
+        toast('Removed from favorites', { icon: '💔' });
+      } else {
+        newFavorites.add(id);
+        toast.success('Added to favorites', { icon: '❤️' });
+      }
+      localStorage.setItem('vegetableFavorites', JSON.stringify([...newFavorites]));
+      return newFavorites;
+    });
   };
 
-  const handleClearSearch = () => {
-    setLocation('');
-    setSearchResults(false);
-    loadMarketData();
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setLocationFilter('');
+    setPriceRange({ min: '', max: '' });
+    setSortBy('latest');
+    toast.success('All filters cleared');
   };
 
-  const handleContactFarmer = (listing) => {
-    // Copy phone to clipboard and inform user
-    navigator.clipboard.writeText(listing.contact);
-    toast.success(`Farmer contact copied: ${listing.contact}`);
+  const handlePriceUpdate = (updatedPrice) => {
+    setPrices(prev => prev.map(p => 
+      p.vegetableName === updatedPrice.vegetableName ? updatedPrice : p
+    ));
   };
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading">Loading market data...</div>
+      <div className="vegetable-market">
+        <div className="market-header">
+          <h1>Fresh Harvest Market</h1>
+          <p>Farm fresh vegetables delivered to your doorstep</p>
+        </div>
+        <div className="market-content">
+          <LoadingSkeleton />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="vegetable-market">
-      <div className="market-header">
-        <h1>🌱 Local Vegetable Market</h1>
-        <p>Find fresh vegetables from local farmers</p>
-      </div>
+      {/* Animated Header */}
+      <motion.div 
+        className="market-header"
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="header-content">
+          <h1>
+            <span className="header-icon"></span>
+            Fresh Harvest Market
+          </h1>
+          <p>Connect directly with local farmers for the freshest produce</p>
+        </div>
+        
+        {/* Stats Bar */}
+        <div className="stats-bar">
+          <div className="stat-item">
+            <ShoppingBag size={20} />
+            <span>{filteredListings.length} Listings</span>
+          </div>
+          <div className="stat-item">
+            <Star size={20} />
+            <span>{favorites.size} Favorites</span>
+          </div>
+          <div className="stat-item">
+            <MapPin size={20} />
+            <span>{locations.length} Locations</span>
+          </div>
+        </div>
+      </motion.div>
 
-      {/* Market Manager Panel: Set Prices */}
-      {user?.role === 'market_manager' && (
-        <div className="manager-price-control">
-          <h2>🛡️ Manager: Update Official Prices</h2>
-          <form onSubmit={handleSetPrice} className="price-form">
+      {/* Search and Filter Bar */}
+      <div className="search-section">
+        <div className="search-container">
+          <div className="search-input-wrapper">
+            <Search size={20} />
             <input
               type="text"
-              placeholder="Vegetable Name"
-              value={newPrice.vegetableName}
-              onChange={(e) => setNewPrice({ ...newPrice, vegetableName: e.target.value })}
-              required
+              placeholder="Search by vegetable, farmer, or location..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
             />
-            <input
-              type="number"
-              placeholder="Price per kg (₹)"
-              value={newPrice.price}
-              onChange={(e) => setNewPrice({ ...newPrice, price: e.target.value })}
-              required
-            />
-            <button type="submit" className="set-price-btn">Update Price</button>
-          </form>
-        </div>
-      )}
-
-      <div className="market-controls">
-        <div className="location-search">
-          <input
-            type="text"
-            placeholder="Search by location (e.g., Delhi, Mumbai, Punjab)"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleLocationSearch();
-              }
-            }}
-          />
-          <button onClick={handleLocationSearch} className="search-btn">🔍 Search</button>
-          {searchResults && (
-            <button onClick={handleClearSearch} className="clear-btn">Clear</button>
-          )}
+            {searchTerm && (
+              <button onClick={() => setSearchTerm('')} className="clear-search">
+                <X size={16} />
+              </button>
+            )}
+          </div>
+          
           <button 
-            onClick={() => navigate('/sell-vegetable')} 
-            className="sell-btn"
+            className={`filter-toggle ${showFilters ? 'active' : ''}`}
+            onClick={() => setShowFilters(!showFilters)}
           >
-            ➕ Sell Vegetables
+            <Filter size={20} />
+            Filters
+            <ChevronDown size={16} className={`chevron ${showFilters ? 'rotate' : ''}`} />
           </button>
-        </div>
-      </div>
 
-      <div className="market-prices">
-        <h2>📊 Official Market Prices</h2>
-        {prices.length > 0 ? (
-          <div className="prices-grid">
-            {prices.map((price) => (
-              <div key={price._id} className="price-card">
-                <h3>{price.vegetableName}</h3>
-                <p className="price">₹{price.price}/kg</p>
-                <small>Updated: {new Date(price.updated_at).toLocaleDateString()}</small>
-              </div>
-            ))}
+          <div className="view-toggle">
+            <button 
+              className={viewMode === 'grid' ? 'active' : ''}
+              onClick={() => setViewMode('grid')}
+            >
+              <Grid size={18} />
+            </button>
+            <button 
+              className={viewMode === 'list' ? 'active' : ''}
+              onClick={() => setViewMode('list')}
+            >
+              <List size={18} />
+            </button>
           </div>
-        ) : (
-          <p className="no-data">No market prices set yet.</p>
-        )}
+        </div>
+
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div 
+              className="filters-panel"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="filter-group">
+                <label>Location</label>
+                <select 
+                  value={locationFilter} 
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                >
+                  <option value="">All Locations</option>
+                  {locations.map(loc => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Price Range (₹/kg)</label>
+                <div className="price-range">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={priceRange.min}
+                    onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                  />
+                  <span>-</span>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="filter-group">
+                <label>Sort By</label>
+                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                  <option value="latest">Latest First</option>
+                  <option value="price_low">Price: Low to High</option>
+                  <option value="price_high">Price: High to Low</option>
+                </select>
+              </div>
+
+              <button onClick={handleClearFilters} className="clear-all-filters">
+                Clear All Filters
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Market Manager Panel: Pending Approvals */}
+      {/* Market Prices Dashboard */}
+      <Suspense fallback={<div className="loading-prices">Loading prices...</div>}>
+        <PriceDashboard prices={prices} />
+      </Suspense>
+
+      {/* Manager Panel */}
       {user?.role === 'market_manager' && (
-        <div className="market-listings approvals-section">
-          <h2 className="text-warning">📋 Pending Approvals</h2>
-          {listings.filter(l => l.status === 'pending').length > 0 ? (
-            <div className="listings-grid">
-              {listings.filter(l => l.status === 'pending').map((listing) => (
-                <div key={listing._id} className="listing-card pending">
-                  <div className="listing-header">
-                    <h3>{listing.vegetableName}</h3>
-                    <span className="badge-pending">Pending</span>
-                  </div>
-                  <div className="listing-details">
-                    <p>₹{listing.price}/kg | {listing.quantity}kg</p>
-                    <p>📍 {listing.location}</p>
-                  </div>
-                  <div className="listing-actions manager-actions">
-                    <button onClick={() => handleApprove(listing._id)} className="approve-btn">Approve</button>
-                    <button onClick={() => handleReject(listing._id)} className="reject-btn">Reject</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="no-data">No listings currently awaiting approval.</p>
-          )}
-        </div>
+        <Suspense fallback={<div className="loading-manager">Loading manager panel...</div>}>
+          <ManagerPanel 
+            listings={listings}
+            prices={prices}
+            onPriceUpdate={handlePriceUpdate}
+            onListingUpdate={loadMarketData}
+          />
+        </Suspense>
       )}
 
-      <div className="market-listings">
-        <h2>🛒 Active Market Listings {searchResults && `(Found: ${listings.length})`}</h2>
-        {listings && listings.filter(l => l.status === 'approved' || !l.status).length > 0 ? (
-          <div className="listings-grid">
-            {listings.filter(l => l.status === 'approved' || !l.status).map((listing) => (
-              <div key={listing._id} className="listing-card">
-                <div className="listing-header">
-                  <h3>{listing.vegetableName}</h3>
-                  <span className="status-badge">In Stock</span>
-                </div>
-                <div className="listing-details">
-                  <p className="price">
-                    <strong>₹{Number(listing.price).toFixed(2)}/kg</strong>
-                  </p>
-                  <p className="quantity">📦 {Number(listing.quantity).toFixed(2)} kg available</p>
-                  <p className="location">📍 {listing.location}</p>
-                  <p className="farmer">👤 {listing.farmerName}</p>
-                  <p className="contact">📞 {listing.contact}</p>
-                </div>
-                <div className="listing-actions">
-                  <button 
-                    className="contact-btn"
-                    onClick={() => handleContactFarmer(listing)}
-                  >
-                    📱 Copy Contact
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Listings Section */}
+      <div className="listings-section">
+        <div className="section-header">
+          <h2>
+            <ShoppingBag size={24} />
+            Available Fresh Produce
+          </h2>
+          {searchTerm && (
+            <span className="search-results-count">
+              Found {filteredListings.length} results
+            </span>
+          )}
+        </div>
+
+        {filteredListings.length > 0 ? (
+          <motion.div 
+            className={`listings-${viewMode}`}
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            <AnimatePresence>
+              {filteredListings.map((listing, index) => (
+                <motion.div
+                  key={listing._id}
+                  variants={fadeInUp}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={{ delay: index * 0.05 }}
+                  layout
+                >
+                  <Suspense fallback={<div className="listing-card-skeleton"></div>}>
+                    <ListingCard
+                      listing={listing}
+                      isFavorite={favorites.has(listing._id)}
+                      onToggleFavorite={handleToggleFavorite}
+                      onContact={handleContactFarmer}
+                    />
+                  </Suspense>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         ) : (
-          <p className="no-data">
-            {searchResults 
-              ? `No listings found in "${location}". Try another location.` 
-              : 'No listings available. Be the first to add your vegetables!'}
-          </p>
+          <EmptyState
+            icon={searchTerm || locationFilter ? Search : ShoppingBag}
+            title={searchTerm || locationFilter ? "No results found" : "No listings available"}
+            message={searchTerm || locationFilter 
+              ? "Try adjusting your search or filters to find what you're looking for"
+              : "Be the first to list your vegetables in the marketplace!"
+            }
+            action={!searchTerm && !locationFilter ? {
+              label: "Sell Your Vegetables",
+              onClick: () => navigate('/sell-vegetable')
+            } : null}
+          />
         )}
       </div>
     </div>

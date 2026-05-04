@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { marketAPI } from '../../services/api';
-import { toast } from 'react-toastify';
+import { toast } from "react-hot-toast";
 import './MyListings.css';
 
 const MyListings = () => {

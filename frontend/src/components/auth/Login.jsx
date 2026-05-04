@@ -7,7 +7,7 @@ import { authAPI } from '../../services/api';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Card from '../ui/Card';
-import { toast } from 'react-toastify';
+import { toast } from "react-hot-toast";
 
 const Login = () => {
   const [formData, setFormData] = useState({

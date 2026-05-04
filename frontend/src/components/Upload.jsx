@@ -6,7 +6,7 @@ import { Upload as UploadIcon, Camera, X, Check, AlertCircle } from 'lucide-reac
 import Button from './ui/Button';
 import Card from './ui/Card';
 import Loading from './ui/Loading';
-import { toast } from 'react-toastify';
+import { toast } from "react-hot-toast";
 import './Upload.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;

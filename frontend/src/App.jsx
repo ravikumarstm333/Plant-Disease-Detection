@@ -1,9 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { ToastContainer } from 'react-toastify';
+import { Toaster } from "react-hot-toast";
 import { Leaf } from 'lucide-react';
-import 'react-toastify/dist/ReactToastify.css';
 import './App.css'
 
 // Components
@@ -83,13 +82,13 @@ const MinimalHeader = () => {
         </span>
       </div>
       <div className="flex items-center gap-4">
-        <button 
+        <button
           onClick={() => navigate('/login')}
           className="px-6 py-2 text-gray-700 font-semibold hover:text-primary-600 transition-colors"
         >
           Login
         </button>
-        <button 
+        <button
           onClick={() => navigate('/register')}
           className="px-6 py-2 bg-gradient-primary text-white font-semibold rounded-lg hover:shadow-lg transition-all"
         >
@@ -104,7 +103,7 @@ const MinimalHeader = () => {
 const ConditionalNavbar = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
-  
+
   // Hide navbar on login/register pages
   if (location.pathname === '/login' || location.pathname === '/register') {
     return null;
@@ -192,16 +191,15 @@ function App() {
             </Routes>
           </main>
           <Footer />
-          <ToastContainer
+          <Toaster
             position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#333',
+                color: '#fff',
+              },
+            }}
           />
         </div>
       </Router>
