@@ -34,6 +34,7 @@ frontend/.gitignore
 out/
 build/
 dist/
+leafClassifymodel/
 
 # ML
 *.h5
