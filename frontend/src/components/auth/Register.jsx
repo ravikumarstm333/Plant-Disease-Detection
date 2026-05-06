@@ -8,6 +8,8 @@ import Input from '../ui/Input';
 import Card from '../ui/Card';
 import { toast } from "react-hot-toast";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const Register = () => {
 
   const [step, setStep] = useState(1);
@@ -63,7 +65,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      await fetch("http://localhost:7860/auth/send-otp", {
+      const res = await fetch(`${API_BASE_URL}/auth/send-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -71,12 +73,15 @@ const Register = () => {
         body: JSON.stringify({ email: formData.email })
       });
 
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send OTP");
+
       toast.success("OTP sent to email");
       setStep(2);
       setTimer(60);
 
     } catch (err) {
-      toast.error("Failed to send OTP");
+      toast.error(err.message); // Ab backend se aaya specific error dikhega
     } finally {
       setLoading(false);
     }
@@ -85,7 +90,7 @@ const Register = () => {
   // RESEND OTP
   const resendOTP = async () => {
     try {
-      await fetch("http://localhost:7860/auth/send-otp", {
+      const res = await fetch(`${API_BASE_URL}/auth/send-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -93,11 +98,14 @@ const Register = () => {
         body: JSON.stringify({ email: formData.email })
       });
 
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to resend OTP");
+
       toast.success("OTP resent");
       setTimer(60);
 
     } catch (err) {
-      toast.error("Failed to resend OTP");
+      toast.error(err.message); // Ab backend se aaya specific error dikhega
     }
   };
 
@@ -112,7 +120,7 @@ const Register = () => {
     setOtpLoading(true);
 
     try {
-      const res = await fetch("http://localhost:7860/auth/verify-otp", {
+      const res = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -134,7 +142,8 @@ const Register = () => {
       navigate("/login");
 
     } catch (err) {
-      toast.error(err.message || "Invalid OTP");
+      const errorMsg = err.response?.data?.error || err.message || "Registration failed";
+      toast.error(errorMsg);
     } finally {
       setOtpLoading(false);
     }

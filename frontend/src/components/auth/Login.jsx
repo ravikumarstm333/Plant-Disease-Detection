@@ -9,6 +9,8 @@ import Input from '../ui/Input';
 import Card from '../ui/Card';
 import { toast } from "react-hot-toast";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const Login = () => {
   const [mode, setMode] = useState("login"); 
   // login | forgot | otp | reset
@@ -68,13 +70,16 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await fetch("http://localhost:7860/auth/forgot-password", {
+      const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ email: formData.email })
       });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send OTP");
 
       toast.success("OTP sent");
       setMode("otp");
@@ -105,7 +110,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:7860/auth/verify-otp", {
+      const res = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -117,7 +122,7 @@ const Login = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok) throw new Error(data.error || "Invalid OTP");
 
       toast.success("OTP verified");
       setMode("reset");
@@ -138,7 +143,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:7860/auth/reset-password", {
+      const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -257,6 +262,13 @@ const Login = () => {
           </div>
         )}
 
+        {/* Link to Register Page */}
+        <p className="text-center mt-4">
+          Don't have an account?{" "}
+          <Link to="/register" className="text-blue-500 hover:underline">
+            Sign Up
+          </Link>
+        </p>
       </Card>
     </div>
   );
