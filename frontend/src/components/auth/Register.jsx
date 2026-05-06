@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, MapPin, Phone, Leaf, UserCheck, Eye, EyeOff } from 'lucide-react';
@@ -9,8 +9,10 @@ import Card from '../ui/Card';
 import { toast } from "react-hot-toast";
 
 const Register = () => {
+
   const [step, setStep] = useState(1);
   const [otp, setOtp] = useState("");
+  const [timer, setTimer] = useState(60);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -27,9 +29,19 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
-  const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
+
+  // ⏳ TIMER
+  useEffect(() => {
+    let interval;
+    if (step === 2 && timer > 0) {
+      interval = setInterval(() => {
+        setTimer(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [step, timer]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -39,22 +51,12 @@ const Register = () => {
     });
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.name) newErrors.name = 'Name required';
-    if (!formData.email) newErrors.email = 'Email required';
-    if (!formData.password) newErrors.password = 'Password required';
-    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords not match';
-    return newErrors;
-  };
-
   // STEP 1 → SEND OTP
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const err = validateForm();
-    if (Object.keys(err).length > 0) {
-      setErrors(err);
+    if (!formData.email || !formData.password) {
+      toast.error("Fill all required fields");
       return;
     }
 
@@ -71,6 +73,7 @@ const Register = () => {
 
       toast.success("OTP sent to email");
       setStep(2);
+      setTimer(60);
 
     } catch (err) {
       toast.error("Failed to send OTP");
@@ -79,8 +82,28 @@ const Register = () => {
     }
   };
 
-  // STEP 2 → VERIFY OTP + REGISTER
+  // RESEND OTP
+  const resendOTP = async () => {
+    try {
+      await fetch("http://localhost:7860/auth/send-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email: formData.email })
+      });
+
+      toast.success("OTP resent");
+      setTimer(60);
+
+    } catch (err) {
+      toast.error("Failed to resend OTP");
+    }
+  };
+
+  // VERIFY OTP
   const handleVerifyOTP = async () => {
+
     if (!otp) {
       toast.error("Enter OTP");
       return;
@@ -104,9 +127,10 @@ const Register = () => {
       if (!res.ok) throw new Error(data.error);
 
       const { confirmPassword, agreedToTerms, ...dataToSend } = formData;
+
       await authAPI.register(dataToSend);
 
-      toast.success("Account created!");
+      toast.success("Account created successfully!");
       navigate("/login");
 
     } catch (err) {
@@ -118,15 +142,32 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
-      <Card className="w-full max-w-xl p-6">
+
+      <Card className="w-full max-w-2xl p-6">
 
         {step === 1 ? (
+
           <form onSubmit={handleSubmit} className="space-y-4">
 
             <h2 className="text-2xl font-bold text-center">Register</h2>
 
             <Input name="name" placeholder="Name" onChange={handleChange} />
             <Input name="email" placeholder="Email" onChange={handleChange} />
+
+            {/* ROLE */}
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="farmer">Farmer</option>
+              <option value="buyer">Buyer</option>
+              <option value="market_manager">Market Manager</option>
+            </select>
+
+            <Input name="location" placeholder="Location" onChange={handleChange} />
+            <Input name="phone" placeholder="Phone" onChange={handleChange} />
 
             <Input
               name="password"
@@ -142,19 +183,18 @@ const Register = () => {
               onChange={handleChange}
             />
 
-            <Input name="location" placeholder="Location" onChange={handleChange} />
-            <Input name="phone" placeholder="Phone" onChange={handleChange} />
-
             <Button type="submit" loading={loading} className="w-full">
               Send OTP
             </Button>
 
           </form>
+
         ) : (
 
           <div className="space-y-4 text-center">
 
             <h2 className="text-2xl font-bold">Verify OTP</h2>
+
             <p>OTP sent to {formData.email}</p>
 
             <Input
@@ -162,6 +202,20 @@ const Register = () => {
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
             />
+
+            {/* TIMER */}
+            <p className="text-gray-600">
+              ⏳ {timer > 0 ? `Resend in ${timer}s` : "You can resend OTP"}
+            </p>
+
+            {/* RESEND BUTTON */}
+            <Button
+              onClick={resendOTP}
+              disabled={timer > 0}
+              variant="secondary"
+            >
+              Resend OTP
+            </Button>
 
             <Button onClick={handleVerifyOTP} loading={otpLoading}>
               Verify & Register
@@ -172,6 +226,7 @@ const Register = () => {
             </Button>
 
           </div>
+
         )}
 
         <p className="text-center mt-4">
