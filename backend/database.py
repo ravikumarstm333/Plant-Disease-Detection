@@ -41,7 +41,8 @@ class Database:
                 'users': [],
                 'disease_history': [],
                 'vegetable_listings': [],
-                'market_prices': []
+                'market_prices': [],
+                'otps': []
             }
 
         if self.client:
@@ -51,6 +52,7 @@ class Database:
             self.disease_history = self.db['disease_history']
             self.vegetable_listings = self.db['vegetable_listings']
             self.market_prices = self.db['market_prices']
+            self.otps = self.db['otps']
             self._is_memory = False
         else:
             # Fallback in-memory collections
@@ -58,6 +60,7 @@ class Database:
             self.disease_history = self._memory_db['disease_history']
             self.vegetable_listings = self._memory_db['vegetable_listings']
             self.market_prices = self._memory_db['market_prices']
+            self.otps = self._memory_db['otps']
             self._is_memory = True
 
     # Helper method to handle both MongoDB and memory operations

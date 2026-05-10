@@ -1,8 +1,14 @@
 flask
 flask-cors
-flask-jwt-extended
-pymongo[srv]
+Flask-JWT-Extended
+tensorflow==2.10.0
 numpy==1.23.5
 pillow
-tensorflow==2.10.0
+pymongo[srv]
+python-dotenv
 gunicorn
+bcrypt
+certifi
+requests
+
+opencv-python-headless
