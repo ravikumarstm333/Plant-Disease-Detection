@@ -49,5 +49,6 @@ backend/uploads/
 
 # Environment variables
 /backend/.env
+/frontend/.env
 /Documents
 /backend/plant-disease-backend
