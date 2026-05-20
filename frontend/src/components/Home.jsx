@@ -31,9 +31,9 @@ function Home() {
   ];
 
   const stats = [
-    { number: '50K+', label: 'Plants Scanned' },
+    { number: '50+', label: 'Plants Scanned' },
     { number: '94.6%', label: 'Accuracy' },
-    { number: '10K+', label: 'Farmers' },
+    { number: '10+', label: 'Farmers' },
   ];
 
   const containerVariants = {
@@ -278,7 +278,7 @@ function Home() {
           <div className="glass-card-lg">
             <Award className="mx-auto mb-6 text-primary-600" size={48} />
             <h2 className="text-3xl md:text-4xl font-bold text-gradient mb-4">
-              Join 10,000+ Farmers Today
+              Join 14+ Farmers Today
             </h2>
             <p className="text-lg text-gray-600 mb-8">
               Transform your farming with AI-powered disease detection and direct market access.

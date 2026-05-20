@@ -510,3 +510,160 @@
     margin-top: -40px;
   }
 }
+
+.buyer-prices-wrap,
+.buyer-search-wrap,
+.buyer-listings-wrap {
+  margin-top: 28px;
+}
+
+.buyer-prices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.buyer-price-card {
+  background: #fff;
+  border: 1px solid #e5efe6;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.buyer-price-card h4 {
+  margin: 0 0 8px;
+  color: var(--gray-800);
+}
+
+.buyer-price-card p {
+  margin: 0;
+  font-weight: 700;
+  color: var(--primary-700);
+}
+
+.buyer-price-card span {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
+.buyer-search-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5efe6;
+  box-shadow: var(--shadow-md);
+  padding: 16px;
+}
+
+.buyer-coords-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+}
+
+.buyer-input {
+  border: 1px solid #d9e8db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+
+.buyer-input:focus {
+  outline: none;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+}
+
+.buyer-range-row {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.buyer-range-row label {
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.buyer-range-slider {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.buyer-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  padding: 0 3px;
+}
+
+.buyer-map-wrap {
+  margin-top: 12px;
+}
+
+.buyer-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, var(--primary-600), var(--primary-500));
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.buyer-btn-outline {
+  background: #fff;
+  border: 1px solid var(--primary-300);
+  color: var(--primary-700);
+}
+
+.buyer-listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.buyer-listing-card {
+  border: 1px solid #dbe8de;
+  border-radius: 14px;
+  background: #fff;
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.buyer-listing-card h4 {
+  margin: 0 0 8px;
+  color: var(--gray-800);
+}
+
+.buyer-listing-card p {
+  margin: 0 0 6px;
+  color: var(--gray-700);
+}
+
+.buyer-buy-row {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .buyer-coords-row {
+    grid-template-columns: 1fr;
+  }
+
+  .buyer-range-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .buyer-buy-row {
+    grid-template-columns: 1fr;
+  }
+}

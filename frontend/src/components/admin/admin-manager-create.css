@@ -1,0 +1,126 @@
+.admin-manager-page {
+  min-height: calc(100vh - 80px);
+  padding: 2rem 1rem;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(34, 139, 34, 0.15), transparent 35%),
+    radial-gradient(circle at 90% 10%, rgba(255, 165, 0, 0.12), transparent 30%),
+    linear-gradient(135deg, #f7fbf7 0%, #edf7ee 100%);
+}
+
+.admin-manager-shell {
+  max-width: 900px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(46, 125, 50, 0.18);
+  border-radius: 18px;
+  box-shadow: 0 20px 45px rgba(30, 80, 35, 0.12);
+  overflow: hidden;
+}
+
+.admin-manager-header {
+  padding: 2rem;
+  background: linear-gradient(120deg, #1d6b28 0%, #2f8f3f 60%, #49a75a 100%);
+  color: #fff;
+}
+
+.admin-kicker {
+  display: inline-block;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  opacity: 0.92;
+}
+
+.admin-manager-header h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  line-height: 1.25;
+}
+
+.admin-manager-header p {
+  margin: 0.6rem 0 0;
+  opacity: 0.95;
+  font-size: 0.95rem;
+}
+
+.admin-manager-form {
+  padding: 1.5rem 2rem 2rem;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: #1f3a23;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.admin-grid input {
+  border: 1px solid #c7d8c9;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.95rem;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-grid input:focus {
+  outline: none;
+  border-color: #2f8f3f;
+  box-shadow: 0 0 0 4px rgba(47, 143, 63, 0.14);
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+.admin-manager-form button {
+  margin-top: 1.25rem;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(120deg, #2f8f3f, #3ca24d);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.85rem 1rem;
+  width: 100%;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.admin-manager-form button:hover:enabled {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(47, 143, 63, 0.25);
+}
+
+.admin-manager-form button:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .admin-manager-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .admin-manager-header,
+  .admin-manager-form {
+    padding: 1.25rem;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .span-2 {
+    grid-column: auto;
+  }
+}

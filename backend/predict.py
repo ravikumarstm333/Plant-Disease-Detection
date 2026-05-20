@@ -1,21 +1,25 @@
 import os
 import numpy as np
-import tensorflow as tf
+import requests
+from dotenv import load_dotenv
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
+
+# Load env
+load_dotenv()
+
+API_KEY = os.getenv("PLANTNET_API_KEY")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DISEASE_MODEL_PATH = os.path.join(BASE_DIR, "model", "plant_disease_model.h5")
-LEAF_MODEL_PATH = os.path.join(BASE_DIR, "model", "leaf_or_nonleaf_model.h5")
 
-# Load models
+# Load disease model only
 disease_model = load_model(DISEASE_MODEL_PATH, compile=False)
-leaf_model = load_model(LEAF_MODEL_PATH, compile=False)
 
-print("✅ Models loaded successfully")
+print("✅ Disease model loaded")
 
-# Class mapping
+# class map
 class_map = {
     0: "Apple___Apple_scab",
     1: "Apple___Black_rot",
@@ -61,43 +65,71 @@ class_map = {
 def preprocess_image(img_path):
     img = image.load_img(img_path, target_size=(224, 224))
     img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0
-    return img_array
+    img_array = np.expand_dims(img_array, axis=0)
+    # Ensure float32 and normalize to [0, 1]
+    return img_array.astype('float32') / 255.0
 
-# leaf check
-def is_leaf(img_array):
-    return True, 1.0
 
-# main prediction
+# ---------------------------
+# PLANTNET LEAF CHECK
+# ---------------------------
+def is_leaf(img_path):
+    try:
+        url = f"https://my-api.plantnet.org/v2/identify/all?api-key={API_KEY}"
+
+        with open(img_path, "rb") as f:
+            files = {"images": f}
+            data = {"organs": "leaf"}
+
+            res = requests.post(url, files=files, data=data)
+            result = res.json()
+
+        organs = result.get("predictedOrgans", [])
+
+        if not organs:
+            return False, 0.0
+
+        return organs[0]["organ"] == "leaf" and organs[0]["score"] > 0.5, organs[0]["score"]
+
+    except:
+        return False, 0.0
+
+
+# ---------------------------
+# MAIN PREDICTION
+# ---------------------------
 def predict_disease(img_path):
     try:
-        img_array = preprocess_image(img_path)
-
-        leaf, leaf_conf = is_leaf(img_array)
+        # STEP 1: GATE CHECK
+        leaf, conf = is_leaf(img_path)
 
         if not leaf:
             return {
                 "status": "rejected",
-                "message": "Not a valid plant leaf image",
-                "leaf_confidence": round(leaf_conf * 100, 2)
+                "message": "Not a leaf image",
+                "leaf_confidence": round(conf * 100, 2)
             }
+
+        # STEP 2: ONLY LEAF → MODEL RUN
+        img_array = preprocess_image(img_path)
 
         prediction = disease_model.predict(img_array, verbose=0)[0]
 
-        index = int(np.argmax(prediction))
-        confidence = float(np.max(prediction))
+        index = np.argmax(prediction)
+        confidence = np.max(prediction)
 
-        print("Prediction:", prediction)
-        print("Index:", index)
-        print("Confidence:", confidence)
-        print("Leaf model output:", leaf_model.predict(img_array))
+        # SAFE mapping (important fix)
+        if index < len(class_map):
+            disease = class_map[index]
+        else:
+            disease = "Unknown (model mismatch)"
 
         return {
             "status": "success",
             "leaf_detected": True,
-            "disease": class_map.get(index, "Unknown"),
+            "disease": disease,
             "confidence": round(confidence * 100, 2),
-            "leaf_confidence": round(leaf_conf * 100, 2)
+            "leaf_confidence": round(conf * 100, 2)
         }
 
     except Exception as e:

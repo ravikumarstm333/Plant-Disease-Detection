@@ -20,6 +20,9 @@ import MyListings from "./components/market/MyListings";
 import DiseaseHistory from "./components/DiseaseHistory";
 import Footer from "./components/Footer";
 import FertilizerStor from "./components/market/FertilizerStore";
+import AdminManagerCreate from "./components/admin/AdminManagerCreate";
+import ManagerActivity from "./components/manager/ManagerActivity";
+import OrdersPage from "./components/orders/OrdersPage";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -121,7 +124,7 @@ const ConditionalNavbar = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="App">
           <ConditionalNavbar />
           <main className="main-content">
@@ -150,11 +153,7 @@ function App() {
                   <Result />
                 </ProtectedRoute>
               } />
-              <Route path="/chat" element={
-                <ProtectedRoute>
-                  <Chatbot />
-                </ProtectedRoute>
-              } />
+              <Route path="/chat" element={<Chatbot />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />
@@ -173,6 +172,21 @@ function App() {
               <Route path="/sell-vegetable" element={
                 <ProtectedRoute allowedRoles={['farmer']}>
                   <SellVegetable />
+                </ProtectedRoute>
+              } />
+              <Route path="/orders" element={
+                <ProtectedRoute allowedRoles={['farmer', 'buyer', 'manager', 'admin']}>
+                  <OrdersPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/managers" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminManagerCreate />
+                </ProtectedRoute>
+              } />
+              <Route path="/manager/activity" element={
+                <ProtectedRoute allowedRoles={['manager', 'admin']}>
+                  <ManagerActivity />
                 </ProtectedRoute>
               } />
               <Route path="/my-listings" element={

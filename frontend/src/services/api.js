@@ -59,13 +59,28 @@ export const chatAPI = {
 export const marketAPI = {
   createListing: (data) => api.post('/market/listings', data),
   getMyListings: () => api.get('/market/listings/my'),
-  getListings: (location = '') => api.get(`/market/listings?location=${location}`),
+  getListings: () => api.get('/market/listings'),
+  getNearbyListings: (lat, lon, rangeKm = 10) =>
+    api.get(`/geolocation/nearby-listings?lat=${lat}&lon=${lon}&rangeKm=${rangeKm}`),
+  updateListing: (id, data) => api.put(`/market/listings/${id}`, data),
   deleteListing: (id) => api.delete(`/market/listings/${id}`),
-  approveListing: (id) => api.put(`/market/listings/${id}/approve`),
-  rejectListing: (id) => api.put(`/market/listings/${id}/reject`),
-  setMarketPrice: (data) => api.post('/market/prices', data),
-  getMarketPrices: () => api.get('/market/prices'),
-  getMarketPrice: (vegetable) => api.get(`/market/prices/${vegetable}`),
+  setMarketPrice: (data) => api.post('/prices', data),
+  getMarketPrices: () => api.get('/prices'),
+};
+
+export const managerAPI = {
+  getActivity: () => api.get('/manager/activity'),
+  getMarketPrices: () => api.get('/prices'),
+  setMarketPrice: (data) => api.post('/prices', data),
+};
+
+export const adminAPI = {
+  createManager: (data) => api.post('/admin/managers', data),
+};
+
+export const ordersAPI = {
+  placeOrder: (data) => api.post('/orders', data),
+  getMyOrders: () => api.get('/orders/my'),
 };
 
 export default api;

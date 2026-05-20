@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database import db
 from bson import ObjectId
+import os
 
 market_bp = Blueprint('market', __name__)
 
@@ -19,7 +20,7 @@ def create_listing():
         data = request.get_json()
 
         # Validate required fields
-        required_fields = ['vegetableName', 'price', 'quantity']
+        required_fields = ['vegetableName', 'price', 'quantity', 'lat', 'lon']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'{field} is required'}), 400
@@ -27,6 +28,8 @@ def create_listing():
         vegetable_name = data['vegetableName'].strip()
         price = float(data['price'])
         quantity = float(data['quantity'])
+        lat = float(data['lat'])
+        lon = float(data['lon'])
 
         if price <= 0 or quantity <= 0:
             return jsonify({'error': 'Price and quantity must be positive numbers'}), 400
@@ -36,14 +39,19 @@ def create_listing():
             'vegetableName': vegetable_name,
             'price': price,
             'quantity': quantity,
-            'location': user['location'],
+            'location': {
+                'type': 'Point',
+                'coordinates': [lon, lat]
+            },
+            'location_name': data.get('locationName', 'Unknown'),
+            'description': data.get('description', ''),
+            'imageUrl': data.get('imageUrl', ''),
             'contact': user['phone'],
             'farmerName': user['name'],
-            'status': 'active'  # Auto-approve listing for immediate listing
+            'status': 'active'
         }
 
         result = db.create_vegetable_listing(listing_data)
-
         return jsonify({
             'message': 'Listing created successfully!',
             'listing_id': str(result.inserted_id),
@@ -142,8 +150,8 @@ def approve_listing(listing_id):
         user_id = get_jwt_identity()
         user = db.find_user_by_id(user_id)
 
-        if not user or user['role'] != 'market_manager':
-            return jsonify({'error': 'Only market managers can approve listings'}), 403
+        if not user or user['role'] != 'manager':
+            return jsonify({'error': 'Only managers can approve listings'}), 403
 
         result = db.update_listing_status(listing_id, 'approved', user_id)
 
@@ -162,8 +170,8 @@ def reject_listing(listing_id):
         user_id = get_jwt_identity()
         user = db.find_user_by_id(user_id)
 
-        if not user or user['role'] != 'market_manager':
-            return jsonify({'error': 'Only market managers can reject listings'}), 403
+        if not user or user['role'] != 'manager':
+            return jsonify({'error': 'Only managers can reject listings'}), 403
 
         result = db.update_listing_status(listing_id, 'rejected', user_id)
 
@@ -183,8 +191,10 @@ def set_market_price():
         user_id = get_jwt_identity()
         user = db.find_user_by_id(user_id)
 
-        if not user or user['role'] != 'market_manager':
-            return jsonify({'error': 'Only market managers can set prices'}), 403
+        # Verify if user is manager OR the permanent admin from .env
+        is_admin = user['email'] == os.getenv('GMAIL_USER')
+        if not (is_admin or (user and user['role'] == 'manager')):
+            return jsonify({'error': 'Unauthorized to set market prices'}), 403
 
         data = request.get_json()
 

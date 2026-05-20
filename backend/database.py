@@ -1,248 +1,243 @@
-from pymongo import MongoClient
 from datetime import datetime
+import math
 import os
+
+from bson import ObjectId
 from dotenv import load_dotenv
+from pymongo import MongoClient, ReturnDocument
+
 
 load_dotenv()
 
+
+def _serialize(doc):
+    if not doc:
+        return doc
+    out = {}
+    for k, v in doc.items():
+        if isinstance(v, ObjectId):
+            out[k] = str(v)
+        elif isinstance(v, list):
+            out[k] = [str(i) if isinstance(i, ObjectId) else i for i in v]
+        else:
+            out[k] = v
+    return out
+
+
 class Database:
     def __init__(self):
-        # MongoDB connection string
-        mongodb_uri = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
+        mongodb_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
+        is_atlas = "mongodb+srv" in mongodb_uri or "mongodb.net" in mongodb_uri
 
-        # Check if connecting to MongoDB Atlas (cloud) or local
-        is_atlas = 'mongodb+srv' in mongodb_uri or 'mongodb.net' in mongodb_uri
+        if is_atlas:
+            self.client = MongoClient(
+                mongodb_uri,
+                tls=True,
+                tlsAllowInvalidCertificates=True,
+                serverSelectionTimeoutMS=5000,
+            )
+        else:
+            self.client = MongoClient(mongodb_uri, serverSelectionTimeoutMS=5000)
+        self.client.admin.command("ping")
 
+        self.db = self.client["smart_farming_platform"]
+        self.users = self.db["users"]
+        self.listings = self.db["listings"]
+        self.orders = self.db["orders"]
+        self.market_prices = self.db["market_prices"]
+        self.disease_history = self.db["disease_history"]
+        self.otps = self.db["otps"]
+        self.vegetable_listings = self.listings
+
+        self.listings.create_index([("location", "2dsphere")])
+        self.listings.create_index([("status", 1)])
+        self.users.create_index("email", unique=True)
+        self.orders.create_index([("buyerId", 1), ("created_at", -1)])
+        self.orders.create_index([("farmerId", 1), ("created_at", -1)])
+        self.otps.create_index("email", unique=True)
+        self.otps.create_index("expiresAt", expireAfterSeconds=0)
+        # Migrate from global-per-vegetable pricing to market-specific pricing.
         try:
-            if is_atlas:
-                # Use SSL for Atlas connections
-                self.client = MongoClient(
-                    mongodb_uri,
-                    tls=True,
-                    tlsAllowInvalidCertificates=True,
-                    serverSelectionTimeoutMS=5000
-                )
-            else:
-                # Local MongoDB connection without SSL
-                self.client = MongoClient(
-                    mongodb_uri,
-                    serverSelectionTimeoutMS=5000
-                )
+            self.market_prices.drop_index("vegetableName_1")
+        except Exception:
+            pass
+        self.market_prices.create_index([("vegetableName", 1), ("marketKey", 1)], unique=True)
 
-            # Test the connection
-            self.client.admin.command('ping')
-            print("✅ MongoDB connection successful!")
-
-        except Exception as e:
-            print(f"❌ MongoDB connection failed: {e}")
-            print("🔄 Using in-memory fallback database for development")
-            self.client = None
-            self._memory_db = {
-                'users': [],
-                'disease_history': [],
-                'vegetable_listings': [],
-                'market_prices': [],
-                'otps': []
-            }
-
-        if self.client:
-            self.db = self.client['smart_farming_platform']
-            # Collections
-            self.users = self.db['users']
-            self.disease_history = self.db['disease_history']
-            self.vegetable_listings = self.db['vegetable_listings']
-            self.market_prices = self.db['market_prices']
-            self.otps = self.db['otps']
-            self._is_memory = False
-        else:
-            # Fallback in-memory collections
-            self.users = self._memory_db['users']
-            self.disease_history = self._memory_db['disease_history']
-            self.vegetable_listings = self._memory_db['vegetable_listings']
-            self.market_prices = self._memory_db['market_prices']
-            self.otps = self._memory_db['otps']
-            self._is_memory = True
-
-    # Helper method to handle both MongoDB and memory operations
-    def _handle_operation(self, operation, *args, **kwargs):
-        if self._is_memory:
-            return getattr(self, f'_memory_{operation}')(*args, **kwargs)
-        else:
-            return getattr(self, f'_mongo_{operation}')(*args, **kwargs)
-
-    # User operations
     def create_user(self, user_data):
-        user_data['created_at'] = datetime.utcnow()
-        if self._is_memory:
-            user_data['_id'] = str(len(self.users) + 1)  # Simple ID generation
-            self.users.append(user_data)
-            return type('Result', (), {'inserted_id': user_data['_id']})()
-        else:
-            return self.users.insert_one(user_data)
+        user_data["created_at"] = datetime.utcnow()
+        return self.users.insert_one(user_data)
 
     def find_user_by_email(self, email):
-        if self._is_memory:
-            return next((user for user in self.users if user.get('email') == email), None)
-        else:
-            return self.users.find_one({'email': email})
+        return self.users.find_one({"email": email})
 
     def find_user_by_id(self, user_id):
-        if self._is_memory:
-            return next((user for user in self.users if user.get('_id') == user_id), None)
-        else:
-            from bson import ObjectId
-            return self.users.find_one({'_id': ObjectId(user_id)})
+        return self.users.find_one({"_id": ObjectId(user_id)})
 
     def update_user(self, user_id, update_data):
-        if self._is_memory:
-            for user in self.users:
-                if user.get('_id') == user_id:
-                    user.update(update_data)
-                    return type('Result', (), {'modified_count': 1})()
-            return type('Result', (), {'modified_count': 0})()
-        else:
-            from bson import ObjectId
-            return self.users.update_one({'_id': ObjectId(user_id)}, {'$set': update_data})
+        update_data["updated_at"] = datetime.utcnow()
+        return self.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
 
-    # Disease history operations
     def save_disease_history(self, history_data):
-        history_data['date'] = datetime.utcnow()
-        if self._is_memory:
-            history_data['_id'] = str(len(self.disease_history) + 1)
-            self.disease_history.append(history_data)
-            return type('Result', (), {'inserted_id': history_data['_id']})()
-        else:
-            return self.disease_history.insert_one(history_data)
+        history_data["date"] = datetime.utcnow()
+        return self.disease_history.insert_one(history_data)
 
     def get_user_disease_history(self, user_id):
-        if self._is_memory:
-            return [h for h in self.disease_history if h.get('userId') == user_id]
-        else:
-            return list(self.disease_history.find({'userId': user_id}).sort('date', -1))
+        return [_serialize(x) for x in self.disease_history.find({"userId": user_id}).sort("date", -1)]
 
-    # Vegetable listings operations
+    def get_all_disease_history(self):
+        return [_serialize(x) for x in self.disease_history.find().sort("date", -1)]
+
+    # Backward compatibility
     def create_vegetable_listing(self, listing_data):
-        listing_data['created_at'] = datetime.utcnow()
-        # Only set status to pending if not already specified
-        if 'status' not in listing_data:
-            listing_data['status'] = 'pending'  # pending, approved, rejected, active
-        if self._is_memory:
-            listing_data['_id'] = str(len(self.vegetable_listings) + 1)
-            self.vegetable_listings.append(listing_data)
-            return type('Result', (), {'inserted_id': listing_data['_id']})()
-        else:
-            return self.vegetable_listings.insert_one(listing_data)
+        return self.create_listing(listing_data)
+
+    def create_listing(self, listing_data):
+        listing_data["created_at"] = datetime.utcnow()
+        listing_data.setdefault("status", "active")
+        return self.listings.insert_one(listing_data)
+
+    def get_listings_by_farmer(self, farmer_id):
+        return [_serialize(x) for x in self.listings.find({"farmerId": farmer_id}).sort("created_at", -1)]
 
     def get_vegetable_listings_by_farmer(self, farmer_id):
-        if self._is_memory:
-            return [l for l in self.vegetable_listings if l.get('farmerId') == farmer_id]
-        else:
-            return list(self.vegetable_listings.find({'farmerId': farmer_id}).sort('created_at', -1))
-
-    def get_approved_listings(self):
-        if self._is_memory:
-            return [l for l in self.vegetable_listings if l.get('status') == 'approved']
-        else:
-            return list(self.vegetable_listings.find({'status': 'approved'}))
+        return self.get_listings_by_farmer(farmer_id)
 
     def get_active_listings(self):
-        """Get all active listings (approved or newly created with active status)"""
-        if self._is_memory:
-            return [l for l in self.vegetable_listings 
-                   if l.get('status') in ['approved', 'active']]
-        else:
-            return list(self.vegetable_listings.find({'status': {'$in': ['approved', 'active']}}))
+        q = {"status": {"$in": ["active", "approved"]}, "quantityKg": {"$gt": 0}}
+        return [_serialize(x) for x in self.listings.find(q).sort("created_at", -1)]
 
-    def get_listings_by_location(self, location):
-        if self._is_memory:
-            return [l for l in self.vegetable_listings
-                   if l.get('status') in ['approved', 'active'] and
-                   location.lower() in l.get('location', '').lower()]
-        else:
-            return list(self.vegetable_listings.find({
-                'status': {'$in': ['approved', 'active']},
-                'location': {'$regex': location, '$options': 'i'}
-            }))
+    def get_nearby_listings(self, lat, lon, max_distance_meters=10000):
+        query = {
+            "status": {"$in": ["active", "approved"]},
+            "quantityKg": {"$gt": 0},
+            "location": {
+                "$near": {
+                    "$geometry": {"type": "Point", "coordinates": [lon, lat]},
+                    "$maxDistance": max_distance_meters,
+                }
+            },
+        }
+        docs = list(self.listings.find(query))
+        for doc in docs:
+            coords = (doc.get("location") or {}).get("coordinates", [])
+            if len(coords) == 2:
+                distance_km = self._haversine_km(lat, lon, coords[1], coords[0])
+                doc["distanceKm"] = round(distance_km, 2)
+        docs.sort(key=lambda x: x.get("distanceKm", 10**9))
+        return [_serialize(x) for x in docs]
 
-    def update_listing_status(self, listing_id, status, approved_by=None):
-        if self._is_memory:
-            for listing in self.vegetable_listings:
-                if listing.get('_id') == listing_id:
-                    listing['status'] = status
-                    if approved_by:
-                        listing['approved_by'] = approved_by
-                        listing['approved_at'] = datetime.utcnow()
-                    return type('Result', (), {'modified_count': 1})()
-            return type('Result', (), {'modified_count': 0})()
-        else:
-            from bson import ObjectId
-            update_data = {'status': status}
-            if approved_by:
-                update_data['approved_by'] = approved_by
-                update_data['approved_at'] = datetime.utcnow()
-            return self.vegetable_listings.update_one({'_id': ObjectId(listing_id)}, {'$set': update_data})
+    def _haversine_km(self, lat1, lon1, lat2, lon2):
+        r = 6371.0
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = (
+            math.sin(dlat / 2) ** 2
+            + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
+        )
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return r * c
 
     def get_listing_by_id(self, listing_id):
-        """Get a single listing by ID"""
-        if self._is_memory:
-            return next((l for l in self.vegetable_listings if l.get('_id') == listing_id), None)
-        else:
-            from bson import ObjectId
-            return self.vegetable_listings.find_one({'_id': ObjectId(listing_id)})
+        doc = self.listings.find_one({"_id": ObjectId(listing_id)})
+        return _serialize(doc) if doc else None
+
+    def update_listing(self, listing_id, patch):
+        patch["updated_at"] = datetime.utcnow()
+        return self.listings.update_one({"_id": ObjectId(listing_id)}, {"$set": patch})
+
+    def update_listing_status(self, listing_id, status, approved_by=None):
+        patch = {"status": status, "updated_at": datetime.utcnow()}
+        if approved_by:
+            patch["approved_by"] = approved_by
+            patch["approved_at"] = datetime.utcnow()
+        return self.listings.update_one({"_id": ObjectId(listing_id)}, {"$set": patch})
+
+    def delete_listing(self, listing_id):
+        return self.listings.delete_one({"_id": ObjectId(listing_id)})
 
     def delete_vegetable_listing(self, listing_id):
-        """Delete a vegetable listing by ID"""
-        if self._is_memory:
-            for i, listing in enumerate(self.vegetable_listings):
-                if listing.get('_id') == listing_id:
-                    self.vegetable_listings.pop(i)
-                    return type('Result', (), {'deleted_count': 1})()
-            return type('Result', (), {'deleted_count': 0})()
-        else:
-            from bson import ObjectId
-            result = self.vegetable_listings.delete_one({'_id': ObjectId(listing_id)})
-            return result
+        return self.delete_listing(listing_id)
 
-    # Market prices operations
+    def upsert_market_price(self, price_data):
+        price_data["updated_at"] = datetime.utcnow()
+        market_key = price_data.get("marketKey", "global")
+        return self.market_prices.update_one(
+            {"vegetableName": price_data["vegetableName"], "marketKey": market_key},
+            {"$set": price_data},
+            upsert=True,
+        )
+
     def set_market_price(self, price_data):
-        price_data['updated_at'] = datetime.utcnow()
-        if self._is_memory:
-            # Check if price already exists for this vegetable
-            existing_index = None
-            for i, price in enumerate(self.market_prices):
-                if price.get('vegetableName') == price_data['vegetableName']:
-                    existing_index = i
-                    break
-
-            if existing_index is not None:
-                self.market_prices[existing_index] = price_data
-                return type('Result', (), {'modified_count': 1})()
-            else:
-                price_data['_id'] = str(len(self.market_prices) + 1)
-                self.market_prices.append(price_data)
-                return type('Result', (), {'inserted_id': price_data['_id']})()
-        else:
-            # Check if price already exists for this vegetable
-            existing = self.market_prices.find_one({'vegetableName': price_data['vegetableName']})
-            if existing:
-                return self.market_prices.update_one(
-                    {'vegetableName': price_data['vegetableName']},
-                    {'$set': price_data}
-                )
-            else:
-                return self.market_prices.insert_one(price_data)
+        return self.upsert_market_price(price_data)
 
     def get_market_prices(self):
-        if self._is_memory:
-            return sorted(self.market_prices, key=lambda x: x.get('updated_at', datetime.min), reverse=True)
-        else:
-            return list(self.market_prices.find().sort('updated_at', -1))
+        return [_serialize(x) for x in self.market_prices.find().sort("updated_at", -1)]
 
-    def get_market_price_by_vegetable(self, vegetable_name):
-        if self._is_memory:
-            return next((price for price in self.market_prices if price.get('vegetableName') == vegetable_name), None)
-        else:
-            return self.market_prices.find_one({'vegetableName': vegetable_name})
+    def get_market_price_by_vegetable(self, vegetable_name, market_key=None):
+        q = {"vegetableName": vegetable_name}
+        if market_key:
+            q["marketKey"] = market_key
+        doc = self.market_prices.find_one(q)
+        return _serialize(doc) if doc else None
 
-# Global database instance
+    def purchase_listing_quantity(self, listing_id, buyer_id, quantity_kg, buyer_location=None):
+        listing = self.listings.find_one({"_id": ObjectId(listing_id)})
+        if not listing:
+            return {"ok": False, "error": "Listing not found"}
+        if listing.get("quantityKg", 0) < quantity_kg:
+            return {"ok": False, "error": "Insufficient quantity"}
+
+        updated = self.listings.find_one_and_update(
+            {"_id": ObjectId(listing_id), "quantityKg": {"$gte": quantity_kg}},
+            {
+                "$inc": {"quantityKg": -quantity_kg},
+                "$set": {"updated_at": datetime.utcnow()},
+            },
+            return_document=ReturnDocument.AFTER,
+        )
+        if not updated:
+            return {"ok": False, "error": "Quantity update failed"}
+
+        if updated["quantityKg"] <= 0:
+            self.listings.update_one({"_id": ObjectId(listing_id)}, {"$set": {"status": "sold_out"}})
+
+        order = {
+            "listingId": listing_id,
+            "buyerId": buyer_id,
+            "farmerId": listing["farmerId"],
+            "vegetableName": listing["vegetableName"],
+            "quantityKg": quantity_kg,
+            "pricePerKg": listing["pricePerKg"],
+            "totalPrice": round(quantity_kg * listing["pricePerKg"], 2),
+            "buyerLocation": buyer_location or {},
+            "orderStatus": "placed",
+            "created_at": datetime.utcnow(),
+        }
+        order_res = self.orders.insert_one(order)
+        return {"ok": True, "order_id": str(order_res.inserted_id), "remaining": updated["quantityKg"]}
+
+    def create_order(self, order_data):
+        order_data["created_at"] = datetime.utcnow()
+        return self.orders.insert_one(order_data)
+
+    def get_orders_by_buyer(self, buyer_id):
+        return [_serialize(x) for x in self.orders.find({"buyerId": buyer_id}).sort("created_at", -1)]
+
+    def get_orders_by_farmer(self, farmer_id):
+        return [_serialize(x) for x in self.orders.find({"farmerId": farmer_id}).sort("created_at", -1)]
+
+    def get_all_orders(self):
+        return [_serialize(x) for x in self.orders.find().sort("created_at", -1)]
+
+    def get_platform_activity_summary(self):
+        return {
+            "users": self.users.count_documents({}),
+            "farmers": self.users.count_documents({"role": "farmer"}),
+            "buyers": self.users.count_documents({"role": "buyer"}),
+            "managers": self.users.count_documents({"role": "manager"}),
+            "activeListings": self.listings.count_documents({"status": {"$in": ["active", "approved"]}, "quantityKg": {"$gt": 0}}),
+            "orders": self.orders.count_documents({}),
+        }
+
+
 db = Database()

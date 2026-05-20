@@ -1,0 +1,206 @@
+.manager-dashboard-page {
+  min-height: calc(100vh - 80px);
+  padding: 2rem 1rem;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(255, 153, 0, 0.14), transparent 30%),
+    radial-gradient(circle at 0% 100%, rgba(43, 138, 62, 0.14), transparent 35%),
+    linear-gradient(135deg, #f4fbf5 0%, #edf6ef 100%);
+}
+
+.manager-dashboard-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.manager-hero {
+  background: linear-gradient(115deg, #1d6b28, #2f8f3f 55%, #4ba95b);
+  color: #fff;
+  border-radius: 16px;
+  padding: 1.6rem 1.8rem;
+  box-shadow: 0 16px 40px rgba(27, 98, 43, 0.22);
+}
+
+.manager-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.95;
+}
+
+.manager-hero h2 {
+  margin: 0;
+  font-size: clamp(1.45rem, 2.6vw, 2rem);
+}
+
+.manager-hero p {
+  margin: 0.55rem 0 0;
+  opacity: 0.95;
+}
+
+.manager-stats {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.manager-stat-card {
+  background: #fff;
+  border: 1px solid #d8e8dc;
+  border-radius: 12px;
+  padding: 0.85rem;
+  box-shadow: 0 10px 22px rgba(33, 89, 46, 0.08);
+}
+
+.manager-stat-card span {
+  display: block;
+  font-size: 0.78rem;
+  color: #55725d;
+}
+
+.manager-stat-card strong {
+  font-size: 1.4rem;
+  color: #1f6f2d;
+}
+
+.manager-grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 1rem;
+}
+
+.price-form-card,
+.price-list-card {
+  background: #fff;
+  border: 1px solid #d8e8dc;
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.price-form-card h3,
+.price-list-card h3 {
+  margin: 0;
+  color: #1f6f2d;
+}
+
+.price-form-card p {
+  margin: 0.4rem 0 1rem;
+  color: #5b7562;
+  font-size: 0.9rem;
+}
+
+.price-form-card label {
+  display: block;
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+  color: #27432c;
+}
+
+.price-form-card input {
+  margin-top: 0.35rem;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #c8dcca;
+  border-radius: 10px;
+  padding: 0.72rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+.location-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-bottom: 0.8rem;
+}
+
+.location-btn {
+  margin-bottom: 0.8rem;
+  border: 1px solid #c8dcca;
+  border-radius: 10px;
+  background: #f6fbf7;
+  color: #1f6f2d;
+  font-weight: 600;
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+}
+
+.price-form-card input:focus {
+  outline: none;
+  border-color: #2f8f3f;
+  box-shadow: 0 0 0 4px rgba(47, 143, 63, 0.14);
+}
+
+.price-form-card button {
+  border: none;
+  border-radius: 10px;
+  width: 100%;
+  padding: 0.78rem 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(120deg, #2f8f3f, #3da34f);
+  cursor: pointer;
+}
+
+.price-form-card button:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.empty-prices {
+  margin-top: 0.8rem;
+  color: #6a806f;
+}
+
+.price-table {
+  margin-top: 0.9rem;
+  max-height: 360px;
+  overflow: auto;
+  border-top: 1px solid #ebf2ec;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 0.15rem;
+  border-bottom: 1px solid #ebf2ec;
+}
+
+.price-row span {
+  color: #27432c;
+}
+
+.price-row strong {
+  color: #1f6f2d;
+}
+
+@media (max-width: 1024px) {
+  .manager-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .manager-dashboard-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .manager-hero {
+    padding: 1.2rem;
+  }
+
+  .manager-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .manager-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .location-row {
+    grid-template-columns: 1fr;
+  }
+}

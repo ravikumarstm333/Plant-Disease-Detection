@@ -97,7 +97,7 @@ const Login = () => {
       }, 1000);
 
     } catch (err) {
-      toast.error("Failed to send OTP");
+      toast.error(err.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }

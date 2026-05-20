@@ -172,7 +172,6 @@ const Register = () => {
             >
               <option value="farmer">Farmer</option>
               <option value="buyer">Buyer</option>
-              <option value="market_manager">Market Manager</option>
             </select>
 
             <Input name="location" placeholder="Location" onChange={handleChange} />

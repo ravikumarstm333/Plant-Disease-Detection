@@ -1,30 +1,47 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, AlertTriangle, ArrowLeft, Share2, Printer, Leaf, Droplet, Shield, MessageCircle } from 'lucide-react';
+
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle,
+  ArrowLeft,
+  Share2,
+  Printer,
+  Leaf,
+  Droplet,
+  Shield,
+  MessageCircle
+} from 'lucide-react';
+
 import Button from './ui/Button';
 import Card from './ui/Card';
 import Badge from './ui/Badge';
 import ChatbotPopup from './ChatbotPopup';
+
 import './Result.css';
 
 const Result = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const data = location.state;
   const [openChat, setOpenChat] = useState(false);
 
+  const data = location.state || null;
+
+  /* ================= NO DATA ================= */
   if (!data) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
         <Card>
           <div className="text-center space-y-4">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto" />
-            <h2 className="text-2xl font-bold text-gray-800">No Results Found</h2>
-            <p className="text-gray-600">Please upload an image first.</p>
-            <Button variant="primary" onClick={() => navigate('/upload')}>
+            <h2 className="text-2xl font-bold">No Results Found</h2>
+            <p>Please upload an image first.</p>
+
+            <Button onClick={() => navigate('/upload')}>
               <ArrowLeft size={20} />
-              Back to Upload
+              Back
             </Button>
           </div>
         </Card>
@@ -32,23 +49,23 @@ const Result = () => {
     );
   }
 
+  /* ================= DATA ================= */
   const disease = data.disease || 'Unknown';
-  const confidence = data.confidence || 85;
-  const treatment = data.treatment || 'Apply fungicide and improve ventilation';
-  const fertilizer = data.fertilizer || 'Use NPK 16:16:16';
-  const fertilizer_links = data.fertilizer_links || [];
+  const confidence = data.confidence || 0;
+  const treatment = data.treatment || 'No treatment available';
+  const fertilizer = data.fertilizer || 'No fertilizer suggestion';
 
+  const fertilizer_links = Array.isArray(data.fertilizer_links)
+    ? data.fertilizer_links
+    : [];
+
+  const isHealthy = disease.toLowerCase().includes('healthy');
   const isSevere = confidence > 80;
   const isWarning = confidence > 50 && confidence <= 80;
-  const isHealthy = disease.toLowerCase().includes('healthy');
 
-  const getSeverityColor = () => {
-    if (isHealthy) return 'success';
-    if (isSevere) return 'danger';
-    if (isWarning) return 'warning';
-    return 'success';
-  };
+  const showAdvice = !isHealthy && disease !== 'Unknown';
 
+  /* ================= ICON ================= */
   const getSeverityIcon = () => {
     if (isHealthy) return <CheckCircle className="text-green-600" size={48} />;
     if (isSevere) return <AlertCircle className="text-red-600" size={48} />;
@@ -56,12 +73,19 @@ const Result = () => {
     return <CheckCircle className="text-green-600" size={48} />;
   };
 
+  const getBadge = () => {
+    if (isHealthy) return 'success';
+    if (isSevere) return 'danger';
+    return 'warning';
+  };
+
+  /* ================= ANIMATION (FIXED) ================= */
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
+      transition: { staggerChildren: 0.1 }
+    }
   };
 
   const itemVariants = {
@@ -69,23 +93,22 @@ const Result = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5 },
-    },
+      transition: { duration: 0.5 }
+    }
   };
 
   return (
-    <div className="min-h-screen px-4 py-8 sm:px-6 lg:px-8 pt-20">
-      <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+    <div className="min-h-screen px-4 py-8 pt-20">
+      <div className="max-w-5xl mx-auto">
+
+        {/* BACK BUTTON */}
+        <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-semibold mb-8"
+          className="flex items-center gap-2 mb-6 text-green-700 font-semibold"
         >
           <ArrowLeft size={20} />
-          Back to Upload
-        </motion.button>
+          Back
+        </button>
 
         <motion.div
           variants={containerVariants}
@@ -93,170 +116,170 @@ const Result = () => {
           animate="visible"
           className="space-y-8"
         >
-          {/* Main Result Card */}
+
+          {/* MAIN CARD */}
           <motion.div variants={itemVariants}>
-            <Card className="glass-card-lg p-8 text-center space-y-6">
-              <motion.div
-                animate={{ scale: [0.8, 1.1, 1] }}
-                transition={{ duration: 0.6 }}
-                className="flex justify-center"
-              >
+            <Card className="p-8 text-center">
+
+              <div className="flex justify-center mb-4">
                 {getSeverityIcon()}
-              </motion.div>
-
-              <div>
-                <h1 className="text-4xl font-bold text-gradient mb-2">{disease}</h1>
-                <p className="text-lg text-gray-600">
-                  {isHealthy ? 'Your plant appears to be healthy!' : 'Disease detected on your plant'}
-                </p>
               </div>
 
-              {/* Confidence Score */}
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-gray-600">Confidence Score</p>
-                <div className="relative h-4 bg-gray-200 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${confidence}%` }}
-                    transition={{ duration: 1 }}
-                    className={`h-full rounded-full ${
-                      isHealthy ? 'bg-gradient-primary' : isSevere ? 'bg-red-500' : 'bg-yellow-500'
-                    }`}
-                  />
-                </div>
-                <p className="text-2xl font-bold text-primary-600">{confidence}%</p>
-              </div>
+              <h1 className="text-3xl font-bold text-green-700 mb-2">
+                {disease}
+              </h1>
 
-              {/* Status Badge */}
-              <div className="flex justify-center gap-2">
-                <Badge variant={getSeverityColor()}>
-                  {isHealthy ? '✓ Healthy' : isSevere ? '⚠ Severe' : '⚡ Mild'}
+              <p className="text-gray-600 mb-2">
+                {isHealthy
+                  ? 'Your plant is healthy 🌿'
+                  : 'Disease detected'}
+              </p>
+
+              <p className="font-bold text-lg text-green-600">
+                Confidence: {confidence}%
+              </p>
+
+              <div className="mt-4">
+                <Badge variant={getBadge()}>
+                  {isHealthy ? 'Healthy' : isSevere ? 'Severe' : 'Mild'}
                 </Badge>
               </div>
 
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+              {/* ACTIONS */}
+              <div className="flex flex-wrap justify-center gap-3 mt-6">
+
+                <button
                   onClick={() => setOpenChat(true)}
-                  className="flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                 >
-                  <MessageCircle size={20} />
-                  Chat with Bot
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center justify-center gap-2 px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all"
-                >
-                  <Share2 size={20} />
+                  <MessageCircle size={18} />
+                  Chat
+                </button>
+
+                <button className="border px-4 py-2 rounded-lg flex items-center gap-2">
+                  <Share2 size={18} />
                   Share
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center justify-center gap-2 px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all"
+                </button>
+
+                <button
                   onClick={() => window.print()}
+                  className="border px-4 py-2 rounded-lg flex items-center gap-2"
                 >
-                  <Printer size={20} />
+                  <Printer size={18} />
                   Print
-                </motion.button>
+                </button>
+
               </div>
+
             </Card>
           </motion.div>
 
-          {/* Recommendations Section */}
-          {!isHealthy && (
+          {/* ================= HEALTHY STATE ================= */}
+          {isHealthy && (
+            <motion.div variants={itemVariants}>
+              <Card className="text-center p-6 bg-green-50">
+                <CheckCircle className="mx-auto text-green-600 mb-2" size={40} />
+                <h3 className="text-lg font-bold text-green-700">
+                  No Treatment Needed 🌿
+                </h3>
+                <p className="text-gray-600">
+                  Your plant is healthy. Keep watering and sunlight regular.
+                </p>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* ================= DISEASE ADVICE ================= */}
+          {showAdvice && (
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Treatment */}
+
               <motion.div variants={itemVariants}>
                 <Card>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Droplet className="text-blue-600" size={24} />
-                    <h3 className="text-lg font-bold text-gray-800">Treatment</h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Droplet className="text-blue-600" />
+                    <h3 className="font-bold">Treatment</h3>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">{treatment}</p>
+                  <p>{treatment}</p>
                 </Card>
               </motion.div>
 
-              {/* Fertilizer */}
               <motion.div variants={itemVariants}>
                 <Card>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Leaf className="text-green-600" size={24} />
-                    <h3 className="text-lg font-bold text-gray-800">Fertilizer</h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Leaf className="text-green-600" />
+                    <h3 className="font-bold">Fertilizer</h3>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">{fertilizer}</p>
+                  <p>{fertilizer}</p>
                 </Card>
               </motion.div>
+
             </div>
           )}
 
-          {/* Fertilizer Products */}
-          {fertilizer_links.length > 0 && (
+          {/* ================= PRODUCTS ================= */}
+          {fertilizer_links.length > 0 && showAdvice && (
             <motion.div variants={itemVariants}>
               <Card>
-                <div className="flex items-center gap-2 mb-6">
-                  <Shield className="text-purple-600" size={24} />
-                  <h3 className="text-lg font-bold text-gray-800">Recommended Products</h3>
+                <div className="flex items-center gap-2 mb-5">
+                  <Shield className="text-purple-600" />
+                  <h3 className="font-bold text-lg">
+                    Recommended Products
+                  </h3>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+
                   {fertilizer_links.map((item, index) => (
-                    <motion.a
+                    <a
                       key={index}
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="text-center group"
+                      className="group"
                     >
-                      <div className="bg-gray-100 rounded-lg p-4 mb-3 group-hover:bg-primary-50 transition-colors h-40">
+                      <div className="bg-gray-100 h-40 flex items-center justify-center rounded-lg group-hover:bg-green-50 transition">
                         <img
                           src={item.image}
-                          alt="Fertilizer"
-                          className="w-full h-full object-contain"
+                          alt="fertilizer"
+                          className="max-h-full object-contain"
                         />
                       </div>
-                      <Button variant="primary" size="sm" className="w-full">
+
+                      <button className="w-full mt-2 bg-green-600 text-white py-2 rounded-lg">
                         Buy Now
-                      </Button>
-                    </motion.a>
+                      </button>
+                    </a>
                   ))}
+
                 </div>
               </Card>
             </motion.div>
           )}
 
-          {/* CTA Buttons */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={() => navigate('/upload')}
-              className="sm:flex-1"
-            >
-              Scan Another
+          {/* CTA */}
+          <div className="flex gap-4 justify-center">
+            <Button onClick={() => navigate('/upload')}>
+              Scan Again
             </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={() => navigate('/history')}
-              className="sm:flex-1"
-            >
-              View History
+
+            <Button variant="secondary" onClick={() => navigate('/history')}>
+              History
             </Button>
-          </motion.div>
+          </div>
+
         </motion.div>
       </div>
 
-      {/* Chatbot Popup */}
+      {/* CHATBOT */}
       <ChatbotPopup
         isOpen={openChat}
         onClose={() => setOpenChat(false)}
         disease={disease}
+        diseaseData={{
+          treatment,
+          fertilizer,
+          prevention: data.prevention || ""
+        }}
       />
     </div>
   );
